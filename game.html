@@ -61,9 +61,6 @@
                 </div>
                 
                 <div class="game-controls">
-                    <button class="control-btn" id="endTurnBtn" onclick="endPlayerTurn()" style="display: none;">
-                        <i class="fas fa-forward"></i> End Turn
-                    </button>
                     <button class="control-btn" id="pauseBtn" onclick="pauseGame()">
                         <i class="fas fa-pause"></i> Pause
                     </button>
@@ -106,7 +103,8 @@
                     <ul>
                         <li>Click your tile to select it (glows gold)</li>
                         <li>Click adjacent tile to move/attack</li>
-                        <li>Need <strong>1.2x more troops</strong> to conquer</li>
+                        <li>NEW: Use bottom slider to choose troop amount</li>
+                        <li>NEW: Difference-based combat system</li>
                         <li>Tiles generate troops over time</li>
                         <li>Control more tiles = more troop generation</li>
                         <li>In <span class="keybind">Domination</span>: Real-time, bots spawn continuously</li>
@@ -130,6 +128,33 @@
                     <div class="log-container" id="gameLog">
                         <div class="log-entry">Game started!</div>
                     </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Bottom Troop Selector -->
+        <div class="bottom-troop-selector" id="troopSelector">
+            <div class="selector-container">
+                <div class="selector-info">
+                    <span id="selectorMessage">Select troops to deploy:</span>
+                </div>
+                <div class="troop-slider-container">
+                    <input type="range" id="troopSlider" min="1" max="10" value="5" class="troop-slider">
+                    <div class="troop-value-display">
+                        <span id="currentTroops">5</span> troops
+                    </div>
+                    <div class="slider-labels">
+                        <span id="minTroopsLabel">1</span>
+                        <span id="maxTroopsLabel">10</span>
+                    </div>
+                </div>
+                <div class="selector-buttons">
+                    <button class="selector-btn cancel-btn" onclick="cancelDeployment()">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                    <button class="selector-btn confirm-btn" onclick="confirmDeployment()">
+                        <i class="fas fa-paper-plane"></i> Deploy
+                    </button>
                 </div>
             </div>
         </div>
@@ -198,16 +223,17 @@
                         <li><strong>Red Tiles:</strong> Bot territory - attacks automatically</li>
                         <li><strong>Gray Tiles:</strong> Neutral - has defense troops</li>
                         <li><strong>Number:</strong> Current troop count on tile</li>
+                        <li><strong>Shield Icon:</strong> Difficulty-based defense bonus</li>
                     </ul>
                 </div>
                 
                 <div class="instruction-section">
-                    <h3><i class="fas fa-crosshairs"></i> Combat System</h3>
+                    <h3><i class="fas fa-crosshairs"></i> NEW Combat System</h3>
                     <ul>
-                        <li>You need <strong>1.2x more troops</strong> to conquer</li>
-                        <li>Defenders get <strong>10% bonus</strong></li>
-                        <li>Attack with <strong>50% of troops</strong> by default</li>
-                        <li>Troops regenerate after battle</li>
+                        <li><strong>Difference-Based:</strong> 21 vs 20 = 21 wins with 1 left</li>
+                        <li><strong>Shield System:</strong> Each tile has difficulty-based defense</li>
+                        <li><strong>Custom Deployment:</strong> Use bottom slider to choose troops</li>
+                        <li><strong>No Auto-Takeover:</strong> Only targeted tile is affected</li>
                         <li>Max <strong>50 troops</strong> per tile</li>
                     </ul>
                 </div>
@@ -218,8 +244,8 @@
                         <li>Expand early to generate more troops</li>
                         <li>Consolidate troops before attacking</li>
                         <li>Watch for bot attacks on your borders</li>
-                        <li>Use troop transfers to reinforce weak tiles</li>
-                        <li>In Domination: Survive as long as possible</li>
+                        <li>Use bottom slider for precise troop deployment</li>
+                        <li>Consider shield values when attacking</li>
                     </ul>
                 </div>
                 
