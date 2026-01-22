@@ -3,131 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Domination - Turn-Based Strategy</title>
+    <title>Domination - Main Menu</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body>
+<body class="menu-page">
     <div class="container">
         <header>
             <h1><i class="fas fa-crown"></i> DOMINATION</h1>
-            <p class="subtitle">Turn-Based Strategy Game - Conquer Tiles, Defeat Bots, Claim Victory!</p>
+            <p class="subtitle">Turn-Based Strategy Game</p>
         </header>
         
-        <div class="game-area">
-            <div class="left-panel">
-                <h2 class="panel-title"><i class="fas fa-user"></i> Player Info</h2>
-                <div class="player-info">
-                    <label for="playerName">Your Name:</label>
-                    <input type="text" id="playerName" placeholder="Enter your name" value="Commander">
-                </div>
-                
-                <div class="mode-selection">
-                    <h3 class="panel-title"><i class="fas fa-gamepad"></i> Game Mode</h3>
-                    <div class="mode-buttons">
-                        <button class="mode-btn active" data-mode="domination">
-                            <i class="fas fa-flag"></i> Domination
-                            <span class="mode-desc">Official Mode - Conquer tiles, survive bots</span>
-                        </button>
-                        <button class="mode-btn" data-mode="bots">
-                            <i class="fas fa-robot"></i> Bots Battle
-                            <span class="mode-desc">Fight multiple bots, last one standing wins</span>
-                        </button>
-                        <button class="mode-btn" data-mode="1v1">
-                            <i class="fas fa-crosshairs"></i> 1v1 Challenge
-                            <span class="mode-desc">Face an elite bot in single combat</span>
+        <div class="menu-container">
+            <div class="player-info-card">
+                <h2><i class="fas fa-user"></i> Enter Your Name</h2>
+                <input type="text" id="playerName" placeholder="Enter your name" value="Commander">
+                <p class="info-text">Your name will appear on the leaderboard</p>
+            </div>
+            
+            <div class="game-modes">
+                <h2><i class="fas fa-gamepad"></i> Select Game Mode</h2>
+                <div class="mode-cards">
+                    <div class="mode-card" data-mode="domination">
+                        <div class="mode-icon">
+                            <i class="fas fa-flag"></i>
+                        </div>
+                        <h3>Domination</h3>
+                        <p>The official mode! Conquer tiles while bots spawn over time. Score saved to leaderboard.</p>
+                        <button class="play-btn" onclick="startGame('domination')">
+                            <i class="fas fa-play"></i> Play Now
                         </button>
                     </div>
-                </div>
-                
-                <div class="game-stats">
-                    <h3 class="panel-title"><i class="fas fa-chart-line"></i> Game Stats</h3>
-                    <div class="stat-row">
-                        <span>Player Tiles:</span>
-                        <span id="playerTiles">1</span>
+                    
+                    <div class="mode-card" data-mode="bots">
+                        <div class="mode-icon">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <h3>Bots Battle</h3>
+                        <p>Fight multiple bots simultaneously. Last one standing wins!</p>
+                        <button class="play-btn" onclick="startGame('bots')">
+                            <i class="fas fa-play"></i> Play Now
+                        </button>
                     </div>
-                    <div class="stat-row">
-                        <span>Bot Count:</span>
-                        <span id="botCount">3</span>
+                    
+                    <div class="mode-card" data-mode="1v1">
+                        <div class="mode-icon">
+                            <i class="fas fa-crosshairs"></i>
+                        </div>
+                        <h3>1v1 Challenge</h3>
+                        <p>Face an elite bot in intense single combat. Hardest difficulty!</p>
+                        <button class="play-btn" onclick="startGame('1v1')">
+                            <i class="fas fa-play"></i> Play Now
+                        </button>
                     </div>
-                    <div class="stat-row">
-                        <span>Turn:</span>
-                        <span id="currentTurn">1</span>
-                    </div>
-                    <div class="stat-row">
-                        <span>Score:</span>
-                        <span id="currentScore">0</span>
-                    </div>
-                    <div class="stat-row">
-                        <span>Difficulty:</span>
-                        <span id="difficultyLevel">Normal</span>
-                    </div>
-                </div>
-                
-                <div class="game-controls">
-                    <button class="control-btn" id="startGame">
-                        <i class="fas fa-play"></i> Start Game
-                    </button>
-                    <button class="control-btn" id="endGame" disabled>
-                        <i class="fas fa-stop"></i> End Game
-                    </button>
-                    <button class="control-btn" id="howToPlayBtn">
-                        <i class="fas fa-question-circle"></i> How to Play
-                    </button>
                 </div>
             </div>
             
-            <div class="game-board">
-                <div class="game-status" id="gameStatus">
-                    Select a mode and click "Start Game" to begin!
-                </div>
-                
-                <div class="tiles-container" id="tilesContainer">
-                    <!-- Tiles will be generated by JavaScript -->
-                </div>
-                
-                <h3 class="panel-title"><i class="fas fa-scroll"></i> Game Log</h3>
-                <div class="game-log" id="gameLog">
-                    <div class="log-entry">Welcome to Domination! Choose your game mode and start playing.</div>
-                </div>
+            <div class="menu-buttons">
+                <button class="menu-btn" onclick="viewLeaderboard()">
+                    <i class="fas fa-trophy"></i> View Leaderboard
+                </button>
+                <button class="menu-btn" onclick="showHowToPlay()">
+                    <i class="fas fa-question-circle"></i> How to Play
+                </button>
             </div>
-        </div>
-        
-        <div class="leaderboard-section">
-            <h2 class="panel-title"><i class="fas fa-trophy"></i> Leaderboards</h2>
-            
-            <div class="leaderboard-tabs">
-                <button class="tab-btn active" data-period="daily">Daily Top 10</button>
-                <button class="tab-btn" data-period="weekly">Weekly Top 10</button>
-                <button class="tab-btn" data-period="alltime">All-Time Top 10</button>
-            </div>
-            
-            <table class="leaderboard-table" id="leaderboardTable">
-                <thead>
-                    <tr>
-                        <th>Rank</th>
-                        <th>Player</th>
-                        <th>Score</th>
-                        <th>Mode</th>
-                        <th>Date</th>
-                    </tr>
-                </thead>
-                <tbody id="leaderboardBody">
-                    <!-- Leaderboard rows will be populated by JavaScript -->
-                </tbody>
-            </table>
         </div>
         
         <footer>
             <p>Domination - Turn-Based Strategy Game | Created with HTML, CSS & JavaScript</p>
-            <p>Game Concept: Conquer tiles, defeat bots, and dominate the battlefield!</p>
         </footer>
     </div>
 
     <!-- How to Play Modal -->
     <div class="modal" id="howToPlayModal">
         <div class="modal-content">
-            <span class="close-modal">&times;</span>
+            <span class="close-modal" onclick="closeHowToPlay()">&times;</span>
             <h2><i class="fas fa-graduation-cap"></i> How to Play Domination</h2>
             
             <div class="instructions">
@@ -159,20 +109,55 @@
                         <li>Difficulty multiplier affects all scores</li>
                     </ul>
                 </div>
-                
-                <div class="instruction-section">
-                    <h3><i class="fas fa-lightbulb"></i> Tips & Strategies</h3>
-                    <ul>
-                        <li>Expand strategically to create defensive barriers</li>
-                        <li>Attack weaker bot tiles first</li>
-                        <li>In Domination mode, focus on rapid early expansion</li>
-                        <li>Watch the game log for important events</li>
-                    </ul>
-                </div>
             </div>
         </div>
     </div>
 
-    <script src="game.js"></script>
+    <script>
+        // Set player name in localStorage
+        function setPlayerName() {
+            const playerName = document.getElementById('playerName').value || 'Commander';
+            localStorage.setItem('dominationPlayerName', playerName);
+            return playerName;
+        }
+
+        // Start game with selected mode
+        function startGame(mode) {
+            const playerName = setPlayerName();
+            localStorage.setItem('dominationGameMode', mode);
+            window.location.href = 'game.html';
+        }
+
+        // View leaderboard
+        function viewLeaderboard() {
+            window.location.href = 'leaderboard.html';
+        }
+
+        // Show how to play modal
+        function showHowToPlay() {
+            document.getElementById('howToPlayModal').style.display = 'block';
+        }
+
+        // Close how to play modal
+        function closeHowToPlay() {
+            document.getElementById('howToPlayModal').style.display = 'none';
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('howToPlayModal');
+            if (event.target === modal) {
+                closeHowToPlay();
+            }
+        }
+
+        // Load saved player name
+        window.onload = function() {
+            const savedName = localStorage.getItem('dominationPlayerName');
+            if (savedName) {
+                document.getElementById('playerName').value = savedName;
+            }
+        }
+    </script>
 </body>
 </html>
