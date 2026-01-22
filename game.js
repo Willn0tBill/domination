@@ -1,6 +1,6 @@
 // ===========================================
 // DOMINATION GAME - FIXED VERSION
-// Simplified with working mechanics
+// Features: Bottom troop selector, no auto takeover
 // ===========================================
 
 // Game State
@@ -66,38 +66,13 @@ const gameStatusTextElement = document.getElementById('gameStatusText');
 const difficultyIndicator = document.getElementById('difficultyIndicator');
 const pauseBtn = document.getElementById('pauseBtn');
 
-// Create deployment modal
-function createDeploymentModal() {
-    const modal = document.createElement('div');
-    modal.id = 'deploymentModal';
-    modal.className = 'modal';
-    modal.style.display = 'none';
-    modal.innerHTML = `
-        <div class="modal-content" style="max-width: 400px;">
-            <h3><i class="fas fa-troops"></i> Deploy Troops</h3>
-            <p id="deploymentMessage">Select number of troops to deploy:</p>
-            
-            <div class="slider-container">
-                <input type="range" id="troopSlider" min="1" max="10" value="5" class="slider">
-                <div class="slider-info">
-                    <span id="minTroops">1</span>
-                    <span id="currentTroops">5</span>
-                    <span id="maxTroops">10</span>
-                </div>
-            </div>
-            
-            <div class="modal-buttons" style="margin-top: 20px;">
-                <button class="modal-btn secondary" onclick="cancelDeployment()">
-                    <i class="fas fa-times"></i> Cancel
-                </button>
-                <button class="modal-btn primary" onclick="confirmDeployment()">
-                    <i class="fas fa-paper-plane"></i> Deploy
-                </button>
-            </div>
-        </div>
-    `;
-    document.body.appendChild(modal);
-}
+// Bottom troop selector elements
+const troopSelector = document.getElementById('troopSelector');
+const selectorMessage = document.getElementById('selectorMessage');
+const troopSlider = document.getElementById('troopSlider');
+const currentTroops = document.getElementById('currentTroops');
+const minTroopsLabel = document.getElementById('minTroopsLabel');
+const maxTroopsLabel = document.getElementById('maxTroopsLabel');
 
 // Initialize Game
 function initGame() {
@@ -111,9 +86,6 @@ function initGame() {
     const modeName = getModeName(gameState.mode);
     gameModeDisplay.textContent = modeName;
     modeInfoElement.textContent = modeName;
-    
-    // Create deployment modal
-    createDeploymentModal();
     
     // Create tiles
     createTiles();
@@ -130,6 +102,9 @@ function initGame() {
     updateUI();
     addLog(`Welcome, Commander ${gameState.playerName}!`);
     addLog(`Mode: ${modeName}, Difficulty: ${getDifficultyText(gameState.difficulty)}`);
+    
+    // Setup troop slider
+    setupTroopSlider();
     
     // Start game loop
     startGameLoop();
@@ -199,6 +174,13 @@ function createTiles() {
             gameState.neutralTiles.push(tileId);
         }
     }
+}
+
+// Setup troop slider
+function setupTroopSlider() {
+    troopSlider.addEventListener('input', function() {
+        currentTroops.textContent = this.value;
+    });
 }
 
 // Start Domination mode
@@ -380,7 +362,7 @@ function handleTileClick(tileId) {
     }
 }
 
-// Start deployment
+// Start deployment with bottom selector
 function startDeployment(fromTileId, toTileId, maxTroops, actionType) {
     gameState.troopDeployment = {
         active: true,
@@ -391,42 +373,30 @@ function startDeployment(fromTileId, toTileId, maxTroops, actionType) {
         actionType: actionType
     };
     
-    const modal = document.getElementById('deploymentModal');
-    const message = document.getElementById('deploymentMessage');
-    const slider = document.getElementById('troopSlider');
-    const minTroops = document.getElementById('minTroops');
-    const currentTroops = document.getElementById('currentTroops');
-    const maxTroopsElem = document.getElementById('maxTroops');
+    // Set up bottom selector
+    troopSlider.min = 1;
+    troopSlider.max = maxTroops;
+    troopSlider.value = gameState.troopDeployment.selectedTroops;
     
-    // Set modal message
+    currentTroops.textContent = gameState.troopDeployment.selectedTroops;
+    minTroopsLabel.textContent = '1';
+    maxTroopsLabel.textContent = maxTroops;
+    
+    // Set message based on action type
     if (actionType === 'attack') {
         const targetOwner = gameState.troops[toTileId].owner;
         const defense = targetOwner === 'bot' ? 
-            gameState.troops[toTileId].botTroops : 
-            gameState.troops[toTileId].neutralTroops;
+            Math.floor(gameState.troops[toTileId].botTroops) : 
+            Math.floor(gameState.troops[toTileId].neutralTroops);
         const shield = gameState.troops[toTileId].shield || 0;
         
-        message.textContent = `Attack ${toTileId} (${Math.floor(defense)} troops + ${shield} shield). Select troops:`;
+        selectorMessage.innerHTML = `Attack ${toTileId} <strong>(${defense} troops + ${shield} shield)</strong>`;
     } else {
-        message.textContent = `Reinforce ${toTileId}. Select troops:`;
+        selectorMessage.innerHTML = `Reinforce ${toTileId}`;
     }
     
-    // Configure slider
-    slider.min = 1;
-    slider.max = Math.min(20, maxTroops);
-    slider.value = gameState.troopDeployment.selectedTroops;
-    
-    minTroops.textContent = '1';
-    currentTroops.textContent = gameState.troopDeployment.selectedTroops;
-    maxTroopsElem.textContent = slider.max;
-    
-    // Update slider display
-    slider.oninput = function() {
-        gameState.troopDeployment.selectedTroops = parseInt(this.value);
-        currentTroops.textContent = this.value;
-    };
-    
-    modal.style.display = 'block';
+    // Show bottom selector
+    troopSelector.style.display = 'block';
 }
 
 // Confirm deployment
@@ -439,15 +409,15 @@ function confirmDeployment() {
         reinforceTile(deployment.fromTile, deployment.toTile, deployment.selectedTroops);
     }
     
-    // Close modal
-    document.getElementById('deploymentModal').style.display = 'none';
+    // Hide selector
+    troopSelector.style.display = 'none';
     gameState.troopDeployment.active = false;
     deselectTile();
 }
 
 // Cancel deployment
 function cancelDeployment() {
-    document.getElementById('deploymentModal').style.display = 'none';
+    troopSelector.style.display = 'none';
     gameState.troopDeployment.active = false;
     addLog("Deployment cancelled");
     deselectTile();
@@ -477,8 +447,7 @@ function attackTile(attackerTileId, defenderTileId, attackTroops) {
         defenseStrength = defenderData.botTroops + shield;
     }
     
-    // NEW: DIFFERENCE-BASED COMBAT
-    // If attacker has more troops (including shield), they win with difference
+    // DIFFERENCE-BASED COMBAT
     if (attackTroops > defenseStrength) {
         // Attacker wins
         const survivingTroops = attackTroops - defenseStrength;
@@ -502,6 +471,9 @@ function attackTile(attackerTileId, defenderTileId, attackTroops) {
             gameState.score += 100;
             gameState.botsDefeated++;
             addLog(`Victory! Defeated bot. ${survivingTroops} troops remain.`);
+            
+            // Check if bot is completely defeated
+            checkBotDefeated();
         }
     } else {
         // Defender wins
@@ -524,51 +496,7 @@ function attackTile(attackerTileId, defenderTileId, attackTroops) {
     updateTroopDisplay(attackerTileId);
     updateTroopDisplay(defenderTileId);
     
-    // NEW: Check if we can take adjacent tiles
-    checkAdjacentTakeover(defenderTileId);
-}
-
-// NEW: Check if tile can take adjacent tiles
-function checkAdjacentTakeover(tileId) {
-    const tileData = gameState.troops[tileId];
-    if (tileData.owner !== 'player') return;
-    
-    const playerTroops = tileData.playerTroops;
-    const adjacentTiles = getAdjacentTiles(tileId);
-    
-    adjacentTiles.forEach(adjTileId => {
-        const adjData = gameState.troops[adjTileId];
-        let defense = 0;
-        
-        if (adjData.owner === 'neutral') {
-            defense = adjData.neutralTroops + adjData.shield;
-            if (playerTroops > defense) {
-                // Auto-take neutral tile
-                const surviving = playerTroops - defense;
-                tileData.playerTroops -= (playerTroops - surviving);
-                adjData.neutralTroops = 0;
-                adjData.playerTroops = surviving;
-                adjData.shield = Math.floor(adjData.shield / 2);
-                conquerTile(adjTileId, 'player');
-                addLog(`Auto-captured adjacent neutral tile!`);
-                updateTroopDisplay(tileId);
-                updateTroopDisplay(adjTileId);
-            }
-        } else if (adjData.owner === 'bot') {
-            defense = adjData.botTroops + adjData.shield;
-            if (playerTroops > defense * 1.2) { // Need 20% more for bots
-                const surviving = playerTroops - defense;
-                tileData.playerTroops -= (playerTroops - surviving);
-                adjData.botTroops = 0;
-                adjData.playerTroops = surviving;
-                adjData.shield = Math.floor(adjData.shield / 2);
-                conquerTile(adjTileId, 'player');
-                addLog(`Auto-captured adjacent bot tile!`);
-                updateTroopDisplay(tileId);
-                updateTroopDisplay(adjTileId);
-            }
-        }
-    });
+    // REMOVED: No auto takeover of adjacent tiles
 }
 
 // Reinforce tile
@@ -788,6 +716,19 @@ function spawnBots(count) {
     gameState.botCount = gameState.bots.length;
 }
 
+// Check if bot is completely defeated
+function checkBotDefeated() {
+    const remainingBots = gameState.bots.filter((bot, index) => {
+        const botTiles = gameState.botTiles.filter(tileId => 
+            gameState.troops[tileId].botTroops > 0
+        );
+        return botTiles.length > 0;
+    });
+    
+    gameState.bots = remainingBots;
+    gameState.botCount = remainingBots.length;
+}
+
 // Check game end
 function checkGameEnd() {
     if (!gameState.active) return;
@@ -822,6 +763,9 @@ function endGame(isVictory) {
         clearInterval(gameState.gameLoop);
         gameState.gameLoop = null;
     }
+    
+    // Hide troop selector
+    troopSelector.style.display = 'none';
     
     // Calculate score
     const timeBonus = Math.floor(gameState.gameTime * 2);
@@ -1063,6 +1007,16 @@ function updateUI() {
             difficultyIndicator.appendChild(dot);
         }
     }
+    
+    // Update troop slider if deployment is active
+    if (gameState.troopDeployment.active) {
+        const deployment = gameState.troopDeployment;
+        const selectedValue = parseInt(troopSlider.value);
+        if (selectedValue !== deployment.selectedTroops) {
+            deployment.selectedTroops = selectedValue;
+            currentTroops.textContent = selectedValue;
+        }
+    }
 }
 
 // Add log
@@ -1108,7 +1062,7 @@ function viewLeaderboard() {
 
 function restartGame() {
     document.getElementById('gameOverModal').style.display = 'none';
-    document.getElementById('deploymentModal').style.display = 'none';
+    troopSelector.style.display = 'none';
     
     // Reset game state
     gameState = {
@@ -1212,14 +1166,11 @@ document.addEventListener('keydown', function(event) {
 
 // Close modals
 window.onclick = function(event) {
-    const modals = ['gameOverModal', 'instructionsModal', 'deploymentModal'];
+    const modals = ['gameOverModal', 'instructionsModal'];
     modals.forEach(modalId => {
         const modal = document.getElementById(modalId);
         if (event.target === modal) {
             modal.style.display = 'none';
-            if (modalId === 'deploymentModal') {
-                gameState.troopDeployment.active = false;
-            }
         }
     });
 };
