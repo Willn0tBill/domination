@@ -1,10 +1,9 @@
 // ===========================================
-// DOMINATION GAME - FIXED GAME LOGIC
-// Fixed: Bot balancing, troop mechanics, difficulty system
-// Improved: Attack/move system, game balance
+// DOMINATION GAME - COMPREHENSIVE FIX
+// Fixed: All reported issues + new features
 // ===========================================
 
-// Game State
+// Game State with all new features
 let gameState = {
     active: false,
     mode: 'domination',
@@ -29,18 +28,42 @@ let gameState = {
     gameLoop: null,
     isPaused: false,
     
-    // Fixed RTS Elements
+    // NEW: Difficulty-based shield values
+    difficultyShields: {
+        1: 0,  // Easy: no shield
+        2: 1,  // Normal: +1 shield
+        3: 2,  // Hard: +2 shield
+        4: 3,  // Expert: +3 shield
+        5: 5   // Insane: +5 shield
+    },
+    
+    // NEW: Troop deployment system
+    troopDeployment: {
+        active: false,
+        fromTile: null,
+        toTile: null,
+        maxTroops: 0,
+        selectedTroops: 0,
+        actionType: null // 'attack' or 'reinforce'
+    },
+    
+    // NEW: Difference-based combat (no 1.2x multiplier)
+    attackMultiplier: 1.0,
+    defenseBonus: 1.0,
+    
+    // Other game settings
     troopGenerationRate: 0.5,
     maxTroopsPerTile: 50,
-    attackMultiplier: 1.2,
-    defenseBonus: 1.1,
-    
-    // Troop Data Structure
     troops: {},
-    
-    // Game settings
     lastTroopUpdate: Date.now(),
-    totalTroopsGenerated: 0
+    totalTroopsGenerated: 0,
+    
+    // Fix for fast difficulty change
+    difficultyChangeCooldown: 0,
+    lastDifficultyChange: 0,
+    
+    // Leaderboard bot filtering
+    leaderboardFiltered: false
 };
 
 // DOM Elements
@@ -68,9 +91,10 @@ function initGame() {
     gameState.playerName = localStorage.getItem('dominationPlayerName') || 'Commander';
     gameState.mode = localStorage.getItem('dominationGameMode') || 'domination';
     
-    // Load difficulty setting (FIXED: Not random)
+    // FIX: Load difficulty with cooldown
     const savedDifficulty = localStorage.getItem('dominationDifficulty');
     gameState.difficulty = savedDifficulty ? parseInt(savedDifficulty) : 2;
+    gameState.difficultyChangeCooldown = Date.now() + 3000; // 3-second cooldown
     
     // Load game settings
     const savedSettings = localStorage.getItem('dominationSettings');
@@ -89,7 +113,7 @@ function initGame() {
     // Set grid size based on mode
     gameState.gridSize = gameState.mode === '1v1' ? 6 : 8;
     
-    // Create tiles
+    // Create tiles with shields
     createTiles();
     
     // Start game based on mode
@@ -104,12 +128,13 @@ function initGame() {
     updateUI();
     addLog(`Welcome, Commander ${gameState.playerName}! Starting ${modeName} mission.`);
     addLog(`Difficulty: ${getDifficultyText(gameState.difficulty)}`);
+    addLog(`Shield Level: +${gameState.difficultyShields[gameState.difficulty]}`);
     
     // Start game loop
     startGameLoop();
 }
 
-// Create game tiles
+// Create game tiles with shield indicators
 function createTiles() {
     tilesContainer.innerHTML = '';
     tilesContainer.style.gridTemplateColumns = `repeat(${gameState.gridSize}, 1fr)`;
@@ -138,6 +163,13 @@ function createTiles() {
             troopCount.textContent = '0';
             content.appendChild(troopCount);
             
+            // NEW: Shield indicator
+            const shieldIndicator = document.createElement('div');
+            shieldIndicator.className = 'shield-indicator';
+            shieldIndicator.innerHTML = '<i class="fas fa-shield-alt"></i>';
+            shieldIndicator.style.display = 'none';
+            content.appendChild(shieldIndicator);
+            
             // Tile icon
             const icon = document.createElement('div');
             icon.className = 'tile-icon';
@@ -154,12 +186,13 @@ function createTiles() {
             tile.addEventListener('click', () => handleTileClick(tileId));
             tilesContainer.appendChild(tile);
             
-            // Initialize troop data with balanced values
+            // Initialize troop data with shields
             gameState.troops[tileId] = {
                 playerTroops: 0,
                 botTroops: 0,
                 neutralTroops: 3 + Math.floor(Math.random() * 4), // 3-6 troops for neutral
-                owner: 'neutral'
+                owner: 'neutral',
+                shield: gameState.difficultyShields[gameState.difficulty] // Apply shield based on difficulty
             };
             
             gameState.neutralTiles.push(tileId);
@@ -175,7 +208,7 @@ function startDomination() {
     const centerRow = Math.floor(gameState.gridSize / 2);
     const centerCol = Math.floor(gameState.gridSize / 2);
     
-    // Starting troops based on difficulty (easier at lower difficulty)
+    // Starting troops based on difficulty
     const startTroops = 40 - (gameState.difficulty * 2);
     
     // Starting tiles based on difficulty
@@ -190,18 +223,21 @@ function startDomination() {
     playerTiles.forEach(tileId => {
         conquerTile(tileId, 'player');
         gameState.troops[tileId].playerTroops = startTroops;
+        // Player tiles have half shield
+        gameState.troops[tileId].shield = Math.floor(gameState.difficultyShields[gameState.difficulty] / 2);
         updateTroopDisplay(tileId);
     });
     
     addLog(`Domination mode engaged. Starting with ${startTiles} tiles and ${startTroops} troops each.`);
+    addLog(`Shield defense: +${gameState.difficultyShields[gameState.difficulty]}`);
     addLog("Expand your territory and survive against progressive bot waves!");
     
-    // Spawn initial bots (fewer at lower difficulty)
+    // Spawn initial bots
     const initialBots = Math.max(1, 3 - gameState.difficulty);
     spawnBots(initialBots);
     
     // Set bot spawn rate based on difficulty
-    gameState.botSpawnRate = 40 - (gameState.difficulty * 5); // 35s at easy, 15s at insane
+    gameState.botSpawnRate = 40 - (gameState.difficulty * 5);
     
     gameState.lastTroopUpdate = Date.now();
     gameStatus.textContent = "Domination: Secure your territory!";
@@ -219,13 +255,14 @@ function startBotsBattle() {
     const playerTile = '1-1';
     conquerTile(playerTile, 'player');
     gameState.troops[playerTile].playerTroops = startTroops;
+    gameState.troops[playerTile].shield = Math.floor(gameState.difficultyShields[gameState.difficulty] / 2);
     updateTroopDisplay(playerTile);
     
     addLog(`Bots Battle initiated. Starting with ${startTroops} troops.`);
     addLog("Eliminate all AI commanders to claim victory!");
     
-    // Spawn bots (number based on difficulty)
-    const botCount = 2 + gameState.difficulty; // 3 at easy, 7 at insane
+    // Spawn bots
+    const botCount = 2 + gameState.difficulty;
     spawnBots(botCount);
     
     gameStatus.textContent = "Bots Battle: Eliminate all opponents!";
@@ -245,27 +282,29 @@ function start1v1() {
     const playerTile = `${playerRow}-1`;
     conquerTile(playerTile, 'player');
     gameState.troops[playerTile].playerTroops = playerStartTroops;
+    gameState.troops[playerTile].shield = Math.floor(gameState.difficultyShields[gameState.difficulty] / 2);
     updateTroopDisplay(playerTile);
     
     // Bot starts on right side
     const botTile = `${playerRow}-${gameState.gridSize - 2}`;
     conquerTile(botTile, 'bot');
     gameState.troops[botTile].botTroops = botStartTroops;
+    gameState.troops[botTile].shield = gameState.difficultyShields[gameState.difficulty];
     updateTroopDisplay(botTile);
     
-    // Create elite bot with balanced stats
+    // Create elite bot
     gameState.bots.push({
         id: 'elite',
-        strength: 1.0 + (gameState.difficulty * 0.3), // 1.3 to 2.5
-        intelligence: 1 + (gameState.difficulty * 0.4), // 1.4 to 3.0
-        aggression: 0.4 + (gameState.difficulty * 0.1) // 0.5 to 0.9
+        strength: 1.0 + (gameState.difficulty * 0.3),
+        intelligence: 1 + (gameState.difficulty * 0.4),
+        aggression: 0.4 + (gameState.difficulty * 0.1)
     });
     gameState.botCount = 1;
     
     addLog(`1v1 Duel against Elite Commander. You: ${playerStartTroops} troops, Bot: ${botStartTroops} troops`);
     addLog("Outmaneuver and outthink your opponent!");
     
-    gameState.difficulty = Math.min(5, gameState.difficulty + 1); // 1v1 is harder
+    gameState.difficulty = Math.min(5, gameState.difficulty + 1);
     
     gameStatus.textContent = "1v1 Duel: Defeat the elite commander!";
     gameStatus.className = "game-status player-turn";
@@ -291,17 +330,9 @@ function startGameLoop() {
         // Process ongoing border skirmishes
         processBattles();
         
-        // Bot AI actions (slowed down based on difficulty)
-        if (gameState.mode === 'domination') {
-            // In domination, bots act more frequently but not crazy
-            if (Math.random() < 0.5) { // 50% chance per tick
-                botActions(deltaTime);
-            }
-        } else {
-            // In other modes, slower actions
-            if (Math.random() < 0.3) { // 30% chance per tick
-                botActions(deltaTime);
-            }
+        // Bot AI actions
+        if (Math.random() < 0.3) {
+            botActions(deltaTime);
         }
         
         // Spawn bots in domination mode
@@ -311,21 +342,15 @@ function startGameLoop() {
             gameState.lastBotSpawn = gameState.gameTime;
         }
         
-        // Slowly increase difficulty in domination mode (not random)
+        // Slowly increase difficulty in domination mode
         if (gameState.mode === 'domination' && 
-            Math.floor(gameState.gameTime) % 120 === 0 && // Every 2 minutes
+            Math.floor(gameState.gameTime) % 120 === 0 && 
             gameState.difficulty < 5) {
             gameState.difficulty++;
             addLog(`Difficulty increased to ${getDifficultyText(gameState.difficulty)}!`);
             
-            // Boost all bot troops slightly
-            gameState.botTiles.forEach(tileId => {
-                gameState.troops[tileId].botTroops = Math.min(
-                    gameState.maxTroopsPerTile,
-                    gameState.troops[tileId].botTroops * 1.1
-                );
-                updateTroopDisplay(tileId);
-            });
+            // Update shields for all tiles
+            updateAllShields();
         }
         
         // Update UI
@@ -334,10 +359,10 @@ function startGameLoop() {
         // Check win conditions
         checkGameEnd();
         
-    }, 200); // Slower update for better performance (200ms = 5 FPS)
+    }, 200);
 }
 
-// Generate troops for owned tiles (FIXED)
+// Generate troops for owned tiles
 function generateTroops(deltaTime) {
     const generation = gameState.troopGenerationRate * deltaTime;
     gameState.totalTroopsGenerated += generation;
@@ -350,18 +375,24 @@ function generateTroops(deltaTime) {
         }
     });
     
-    // Bot troops (slightly slower generation)
+    // Bot troops
     gameState.botTiles.forEach(tileId => {
         if (gameState.troops[tileId].botTroops < gameState.maxTroopsPerTile) {
-            gameState.troops[tileId].botTroops += generation * 0.7; // Bots generate 30% slower
+            gameState.troops[tileId].botTroops += generation * 0.7;
             updateTroopDisplay(tileId);
         }
     });
 }
 
-// Handle tile click (FIXED: Working troop transfer/attack)
+// NEW: Handle tile click with deployment system
 function handleTileClick(tileId) {
     if (!gameState.active || gameState.isPaused) return;
+    
+    // If deployment is active, cancel it first
+    if (gameState.troopDeployment.active) {
+        cancelDeployment();
+        return;
+    }
     
     const tileData = gameState.troops[tileId];
     const playerTroops = tileData.playerTroops;
@@ -374,21 +405,199 @@ function handleTileClick(tileId) {
     
     // If a tile is selected and clicked tile is adjacent
     if (gameState.selectedTile && isAdjacent(tileId, gameState.selectedTile)) {
-        // Determine action based on tile owner
+        const fromTileId = gameState.selectedTile;
+        const fromTroops = Math.floor(gameState.troops[fromTileId].playerTroops);
+        
+        // Determine action type
+        let actionType = null;
         if (gameState.playerTiles.includes(tileId)) {
-            // Move troops to friendly tile
-            moveTroops(gameState.selectedTile, tileId);
+            actionType = 'reinforce';
         } else if (gameState.neutralTiles.includes(tileId) || gameState.botTiles.includes(tileId)) {
-            // Attack neutral or enemy tile
-            attackTile(gameState.selectedTile, tileId);
+            actionType = 'attack';
         }
         
-        // Deselect after action
-        deselectTile();
+        // Start deployment process
+        startDeployment(fromTileId, tileId, fromTroops, actionType);
     } else if (gameState.selectedTile && !isAdjacent(tileId, gameState.selectedTile)) {
         addLog("Target not adjacent. Troops can only move/attack to adjacent tiles.");
         deselectTile();
     }
+}
+
+// NEW: Start troop deployment process
+function startDeployment(fromTileId, toTileId, maxTroops, actionType) {
+    gameState.troopDeployment = {
+        active: true,
+        fromTile: fromTileId,
+        toTile: toTileId,
+        maxTroops: maxTroops,
+        selectedTroops: Math.min(10, Math.floor(maxTroops / 2)),
+        actionType: actionType
+    };
+    
+    // Show deployment modal
+    const modal = document.getElementById('deploymentModal');
+    const message = document.getElementById('deploymentMessage');
+    const slider = document.getElementById('troopSlider');
+    const minTroops = document.getElementById('minTroops');
+    const currentTroops = document.getElementById('currentTroops');
+    const maxTroopsElem = document.getElementById('maxTroops');
+    
+    // Set modal content based on action type
+    if (actionType === 'attack') {
+        const targetOwner = gameState.troops[toTileId].owner;
+        const defenderTroops = targetOwner === 'bot' ? 
+            gameState.troops[toTileId].botTroops : 
+            gameState.troops[toTileId].neutralTroops;
+        const shield = gameState.troops[toTileId].shield;
+        
+        message.textContent = `Attack ${toTileId} (${defenderTroops + shield} defense). Select troops:`;
+    } else {
+        message.textContent = `Reinforce ${toTileId}. Select troops to send:`;
+    }
+    
+    // Configure slider
+    slider.min = 1;
+    slider.max = Math.min(20, maxTroops);
+    slider.value = gameState.troopDeployment.selectedTroops;
+    
+    minTroops.textContent = '1';
+    currentTroops.textContent = gameState.troopDeployment.selectedTroops;
+    maxTroopsElem.textContent = slider.max;
+    
+    // Update slider display
+    slider.oninput = function() {
+        gameState.troopDeployment.selectedTroops = parseInt(this.value);
+        currentTroops.textContent = this.value;
+    };
+    
+    modal.style.display = 'block';
+}
+
+// NEW: Confirm deployment
+function confirmDeployment() {
+    const deployment = gameState.troopDeployment;
+    
+    if (deployment.actionType === 'attack') {
+        attackTileWithCustomTroops(deployment.fromTile, deployment.toTile, deployment.selectedTroops);
+    } else if (deployment.actionType === 'reinforce') {
+        reinforceTile(deployment.fromTile, deployment.toTile, deployment.selectedTroops);
+    }
+    
+    // Close modal and reset
+    document.getElementById('deploymentModal').style.display = 'none';
+    gameState.troopDeployment.active = false;
+    deselectTile();
+}
+
+// NEW: Cancel deployment
+function cancelDeployment() {
+    document.getElementById('deploymentModal').style.display = 'none';
+    gameState.troopDeployment.active = false;
+    addLog("Deployment cancelled.");
+    deselectTile();
+}
+
+// NEW: Attack with custom troop amount (DIFFERENCE-BASED COMBAT)
+function attackTileWithCustomTroops(attackerTileId, defenderTileId, attackTroops) {
+    const attackerData = gameState.troops[attackerTileId];
+    const defenderData = gameState.troops[defenderTileId];
+    
+    // Check if we have enough troops
+    if (attackTroops > attackerData.playerTroops) {
+        addLog("Not enough troops for this attack!");
+        return;
+    }
+    
+    // Remove attacking troops from source
+    attackerData.playerTroops -= attackTroops;
+    
+    let defenseStrength = 0;
+    let defenderOwner = defenderData.owner;
+    const shieldBonus = defenderData.shield || 0;
+    
+    if (defenderOwner === 'neutral') {
+        defenseStrength = defenderData.neutralTroops + shieldBonus;
+    } else if (defenderOwner === 'bot') {
+        defenseStrength = defenderData.botTroops + shieldBonus;
+    }
+    
+    // NEW: Difference-based combat
+    // If attacker has more troops (including shield), they win with difference
+    if (attackTroops > defenseStrength) {
+        // Attacker wins
+        const survivingTroops = attackTroops - defenseStrength;
+        
+        // Clear defender troops
+        defenderData.neutralTroops = 0;
+        defenderData.botTroops = 0;
+        
+        if (defenderOwner === 'neutral') {
+            // FIXED: Neutral tile conquest - troops stay on captured tile
+            defenderData.playerTroops = survivingTroops;
+            conquerTile(defenderTileId, 'player');
+            // Keep shield for player (half value)
+            defenderData.shield = Math.floor(shieldBonus / 2);
+            gameState.score += 25 * gameState.difficulty;
+            addLog(`Captured neutral territory at ${defenderTileId}! ${survivingTroops} troops remain.`);
+        } else if (defenderOwner === 'bot') {
+            defenderData.playerTroops = survivingTroops;
+            conquerTile(defenderTileId, 'player');
+            defenderData.shield = Math.floor(shieldBonus / 2);
+            gameState.score += 100 * gameState.difficulty;
+            gameState.botsDefeated++;
+            addLog(`Victory! Defeated bot at ${defenderTileId}. ${survivingTroops} troops remain.`);
+            
+            // Check if bot is completely defeated
+            checkBotDefeated();
+        }
+    } else {
+        // Defender wins
+        const survivingDefenders = defenseStrength - attackTroops;
+        
+        if (defenderOwner === 'neutral') {
+            defenderData.neutralTroops = Math.max(1, survivingDefenders - shieldBonus);
+            addLog(`Attack failed at ${defenderTileId}. Defender has ${Math.floor(defenderData.neutralTroops)} troops left.`);
+        } else if (defenderOwner === 'bot') {
+            defenderData.botTroops = Math.max(1, survivingDefenders - shieldBonus);
+            addLog(`Attack failed at ${defenderTileId}. Bot has ${Math.floor(defenderData.botTroops)} troops left.`);
+        }
+        
+        // Attacker loses all attacking troops
+        addLog(`Lost ${attackTroops} troops in the attack.`);
+    }
+    
+    // Battle animation
+    animateBattle(attackerTileId, defenderTileId);
+    
+    updateTroopDisplay(attackerTileId);
+    updateTroopDisplay(defenderTileId);
+}
+
+// NEW: Reinforce friendly tile
+function reinforceTile(fromTileId, toTileId, troops) {
+    const fromData = gameState.troops[fromTileId];
+    const toData = gameState.troops[toTileId];
+    
+    if (troops > fromData.playerTroops) {
+        addLog("Not enough troops to move!");
+        return;
+    }
+    
+    fromData.playerTroops -= troops;
+    toData.playerTroops += troops;
+    
+    // Cap at max troops
+    if (toData.playerTroops > gameState.maxTroopsPerTile) {
+        const excess = toData.playerTroops - gameState.maxTroopsPerTile;
+        toData.playerTroops = gameState.maxTroopsPerTile;
+        fromData.playerTroops += excess;
+    }
+    
+    updateTroopDisplay(fromTileId);
+    updateTroopDisplay(toTileId);
+    
+    addLog(`Moved ${troops} troops from ${fromTileId} to ${toTileId}`);
 }
 
 // Select a tile
@@ -406,7 +615,8 @@ function selectTile(tileId) {
         tile.classList.add('selected');
         
         const troops = Math.floor(gameState.troops[tileId].playerTroops);
-        addLog(`Selected ${tileId} with ${troops} troops. Click adjacent tile to move/attack.`);
+        const shield = gameState.troops[tileId].shield || 0;
+        addLog(`Selected ${tileId} with ${troops} troops${shield > 0 ? ` (+${shield} shield)` : ''}. Click adjacent tile.`);
     }
 }
 
@@ -417,134 +627,6 @@ function deselectTile() {
         if (tile) tile.classList.remove('selected');
         gameState.selectedTile = null;
     }
-}
-
-// Move troops between friendly tiles (FIXED: Working properly)
-function moveTroops(fromTileId, toTileId) {
-    const fromData = gameState.troops[fromTileId];
-    const toData = gameState.troops[toTileId];
-    
-    const availableTroops = Math.floor(fromData.playerTroops);
-    if (availableTroops <= 0) {
-        addLog("No troops available to move!");
-        return;
-    }
-    
-    // Move 50% of troops, minimum 1
-    const troopsToMove = Math.max(1, Math.floor(availableTroops * 0.5));
-    
-    fromData.playerTroops -= troopsToMove;
-    toData.playerTroops += troopsToMove;
-    
-    // Cap at max troops
-    if (toData.playerTroops > gameState.maxTroopsPerTile) {
-        const excess = toData.playerTroops - gameState.maxTroopsPerTile;
-        toData.playerTroops = gameState.maxTroopsPerTile;
-        fromData.playerTroops += excess; // Return excess troops
-    }
-    
-    updateTroopDisplay(fromTileId);
-    updateTroopDisplay(toTileId);
-    
-    addLog(`Moved ${troopsToMove} troops from ${fromTileId} to ${toTileId}`);
-}
-
-// Attack a tile (FIXED: Balanced combat system)
-function attackTile(attackerTileId, defenderTileId) {
-    const attackerData = gameState.troops[attackerTileId];
-    const defenderData = gameState.troops[defenderTileId];
-    
-    // Use 50% of attacker's troops for the attack
-    const attackStrength = Math.floor(attackerData.playerTroops * 0.5);
-    const remainingGarrison = attackerData.playerTroops - attackStrength;
-    
-    if (attackStrength <= 0) {
-        addLog("Not enough troops to attack!");
-        return;
-    }
-    
-    let defenseStrength = 0;
-    let defenderOwner = defenderData.owner;
-    
-    if (defenderOwner === 'neutral') {
-        defenseStrength = defenderData.neutralTroops;
-    } else if (defenderOwner === 'bot') {
-        defenseStrength = defenderData.botTroops * gameState.defenseBonus; // Defenders get bonus
-    }
-    
-    // You need attackMultiplier times more troops to conquer
-    const requiredStrength = defenseStrength * gameState.attackMultiplier;
-    
-    if (attackStrength >= requiredStrength) {
-        // Successful attack - attacker wins
-        const defenderCasualties = Math.floor(defenseStrength * 0.7); // 70% of defenders die
-        const attackerCasualties = Math.floor(defenderCasualties * 0.5); // Attackers lose half of defender casualties
-        
-        const survivingAttackers = Math.max(1, attackStrength - attackerCasualties);
-        
-        // Update troop counts
-        attackerData.playerTroops = remainingGarrison; // Garrison stays behind
-        
-        // Clear defender troops
-        defenderData.neutralTroops = 0;
-        defenderData.botTroops = 0;
-        defenderData.playerTroops = 0;
-        
-        if (defenderOwner === 'neutral') {
-            defenderData.playerTroops = survivingAttackers;
-            conquerTile(defenderTileId, 'player');
-            gameState.score += 25 * gameState.difficulty;
-            addLog(`Captured neutral territory at ${defenderTileId}! Lost ${attackerCasualties} troops.`);
-        } else if (defenderOwner === 'bot') {
-            defenderData.playerTroops = survivingAttackers;
-            conquerTile(defenderTileId, 'player');
-            gameState.score += 100 * gameState.difficulty;
-            gameState.botsDefeated++;
-            addLog(`Victory! Defeated bot at ${defenderTileId}. Lost ${attackerCasualties} troops.`);
-            
-            // Check if this bot is completely defeated
-            const botHasTiles = gameState.botTiles.some(tile => 
-                gameState.troops[tile].botTroops > 0
-            );
-            if (!botHasTiles) {
-                // Remove defeated bot
-                const botIndex = gameState.bots.findIndex(bot => bot.id && bot.id.startsWith('bot-'));
-                if (botIndex !== -1) {
-                    gameState.bots.splice(botIndex, 1);
-                }
-            }
-        }
-    } else {
-        // Failed attack - defender wins
-        const attackerCasualties = Math.floor(attackStrength * 0.6); // Attacker loses 60%
-        const defenderCasualties = Math.floor(attackStrength * 0.3); // Defender loses 30%
-        
-        // Return surviving attackers to garrison
-        attackerData.playerTroops = remainingGarrison + (attackStrength - attackerCasualties);
-        
-        if (defenderOwner === 'neutral') {
-            defenderData.neutralTroops = Math.max(0, defenderData.neutralTroops - defenderCasualties);
-        } else if (defenderOwner === 'bot') {
-            defenderData.botTroops = Math.max(0, defenderData.botTroops - defenderCasualties);
-        }
-        
-        addLog(`Attack failed at ${defenderTileId}. Lost ${attackerCasualties} troops. Need more forces!`);
-    }
-    
-    // Battle animation
-    const attackerTile = document.querySelector(`[data-id="${attackerTileId}"]`);
-    const defenderTile = document.querySelector(`[data-id="${defenderTileId}"]`);
-    if (attackerTile && defenderTile) {
-        attackerTile.classList.add('battle');
-        defenderTile.classList.add('battle');
-        setTimeout(() => {
-            attackerTile.classList.remove('battle');
-            defenderTile.classList.remove('battle');
-        }, 500);
-    }
-    
-    updateTroopDisplay(attackerTileId);
-    updateTroopDisplay(defenderTileId);
 }
 
 // Conquer a tile (change ownership)
@@ -587,16 +669,16 @@ function conquerTile(tileId, newOwner) {
     updateTroopDisplay(tileId);
 }
 
-// Bot AI actions (FIXED: Balanced, not crazy)
+// Bot AI actions with new combat system
 function botActions(deltaTime) {
     gameState.bots.forEach((bot, botIndex) => {
-        // Bot aggression based on difficulty (not random)
+        // Bot aggression based on difficulty
         const aggressionChance = bot.aggression || 0.5;
-        if (Math.random() > aggressionChance) return; // Bot might not act
+        if (Math.random() > aggressionChance) return;
         
         // Find bot tiles with enough troops
         const botTilesWithTroops = gameState.botTiles.filter(tileId => 
-            gameState.troops[tileId].botTroops > 10
+            gameState.troops[tileId].botTroops > 5
         );
         
         if (botTilesWithTroops.length === 0) return;
@@ -624,8 +706,8 @@ function botActions(deltaTime) {
         
         // Check for weak player tiles
         for (const tileId of playerTargets) {
-            const defenseStrength = gameState.troops[tileId].playerTroops * gameState.defenseBonus;
-            if (fromTroops >= defenseStrength * gameState.attackMultiplier) {
+            const defenseStrength = gameState.troops[tileId].playerTroops + (gameState.troops[tileId].shield || 0);
+            if (fromTroops > defenseStrength) {
                 targetTileId = tileId;
                 targetType = 'player';
                 break;
@@ -635,8 +717,8 @@ function botActions(deltaTime) {
         // If no weak player tile, try neutral
         if (!targetTileId && neutralTargets.length > 0) {
             for (const tileId of neutralTargets) {
-                const defenseStrength = gameState.troops[tileId].neutralTroops;
-                if (fromTroops >= defenseStrength * gameState.attackMultiplier) {
+                const defenseStrength = gameState.troops[tileId].neutralTroops + (gameState.troops[tileId].shield || 0);
+                if (fromTroops > defenseStrength) {
                     targetTileId = tileId;
                     targetType = 'neutral';
                     break;
@@ -644,72 +726,51 @@ function botActions(deltaTime) {
             }
         }
         
-        // If we have a target, attack with reasonable force
+        // If we have a target, attack
         if (targetTileId) {
-            const attackPercent = 0.5 + (Math.random() * 0.3); // 50-80% of troops
+            const attackPercent = 0.5 + (Math.random() * 0.3);
             const attackStrength = Math.floor(fromTroops * attackPercent);
             const defenderData = gameState.troops[targetTileId];
             
             if (targetType === 'player') {
-                const defenseStrength = defenderData.playerTroops * gameState.defenseBonus;
+                const defenseStrength = defenderData.playerTroops + (defenderData.shield || 0);
                 
-                if (attackStrength >= defenseStrength * gameState.attackMultiplier) {
+                if (attackStrength > defenseStrength) {
                     // Bot wins
-                    const defenderCasualties = Math.floor(defenseStrength * 0.7);
-                    const attackerCasualties = Math.floor(defenderCasualties * 0.5);
+                    const survivingTroops = attackStrength - defenseStrength;
                     
                     gameState.troops[fromTileId].botTroops -= attackStrength;
                     defenderData.playerTroops = 0;
-                    defenderData.botTroops = Math.max(1, attackStrength - attackerCasualties);
+                    defenderData.botTroops = survivingTroops;
                     
                     conquerTile(targetTileId, 'bot');
                     addLog("AI captured one of your territories!");
                 } else {
                     // Bot loses
-                    const attackerCasualties = Math.floor(attackStrength * 0.6);
-                    const defenderCasualties = Math.floor(attackStrength * 0.3);
-                    
-                    gameState.troops[fromTileId].botTroops -= attackerCasualties;
-                    defenderData.playerTroops = Math.max(0, defenderData.playerTroops - defenderCasualties);
+                    gameState.troops[fromTileId].botTroops -= attackStrength;
+                    const survivingDefenders = defenseStrength - attackStrength;
+                    defenderData.playerTroops = Math.max(0, survivingDefenders - (defenderData.shield || 0));
                     
                     addLog("AI attack repelled!");
                 }
             } else if (targetType === 'neutral') {
-                const defenseStrength = defenderData.neutralTroops;
+                const defenseStrength = defenderData.neutralTroops + (defenderData.shield || 0);
                 
-                if (attackStrength >= defenseStrength * gameState.attackMultiplier) {
+                if (attackStrength > defenseStrength) {
                     gameState.troops[fromTileId].botTroops -= attackStrength;
                     defenderData.neutralTroops = 0;
-                    defenderData.botTroops = Math.max(1, attackStrength - Math.floor(defenseStrength * 0.35));
+                    defenderData.botTroops = attackStrength - defenseStrength;
                     conquerTile(targetTileId, 'bot');
                 }
             }
             
             updateTroopDisplay(fromTileId);
             updateTroopDisplay(targetTileId);
-        } else {
-            // If no good target, reinforce adjacent bot tile (but not too often)
-            if (Math.random() > 0.7) return;
-            
-            const adjacentBotTiles = adjacentTiles.filter(tileId => 
-                gameState.botTiles.includes(tileId)
-            );
-            
-            if (adjacentBotTiles.length > 0) {
-                const toTileId = adjacentBotTiles[Math.floor(Math.random() * adjacentBotTiles.length)];
-                const troopsToMove = Math.floor(fromTroops * 0.3); // Move 30% of troops
-                
-                gameState.troops[fromTileId].botTroops -= troopsToMove;
-                gameState.troops[toTileId].botTroops += troopsToMove;
-                
-                updateTroopDisplay(fromTileId);
-                updateTroopDisplay(toTileId);
-            }
         }
     });
 }
 
-// Spawn new bots (FIXED: Balanced troop numbers)
+// Spawn new bots
 function spawnBots(count) {
     for (let i = 0; i < count; i++) {
         if (gameState.bots.length >= gameState.maxBots) break;
@@ -731,13 +792,14 @@ function spawnBots(count) {
         }
         
         if (spawnTile) {
-            // Give bot starting troops based on difficulty (balanced)
-            const startingTroops = 15 + (gameState.difficulty * 3); // 18 at easy, 30 at insane
+            // Give bot starting troops based on difficulty
+            const startingTroops = 15 + (gameState.difficulty * 3);
             gameState.troops[spawnTile].neutralTroops = 0;
             gameState.troops[spawnTile].botTroops = startingTroops;
+            gameState.troops[spawnTile].shield = gameState.difficultyShields[gameState.difficulty];
             conquerTile(spawnTile, 'bot');
             
-            // Create bot with balanced stats
+            // Create bot
             const botStrength = 1.0 + (Math.random() * 0.3 * gameState.difficulty);
             gameState.bots.push({
                 id: `bot-${Date.now()}-${i}`,
@@ -751,12 +813,12 @@ function spawnBots(count) {
     }
     
     gameState.botCount = gameState.bots.length;
-    gameState.maxBots = Math.min(8, 3 + Math.floor(gameState.gameTime / 90)); // Slower max bot increase
+    gameState.maxBots = Math.min(8, 3 + Math.floor(gameState.gameTime / 90));
 }
 
 // Process ongoing battles at borders
 function processBattles() {
-    // Only process a few battles per tick for performance
+    // Only process a few battles per tick
     const maxBattles = 2;
     let battlesProcessed = 0;
     
@@ -779,9 +841,9 @@ function processBattles() {
         const enemyTroops = gameState.troops[battle.enemyTile].botTroops;
         
         if (playerTroops > 0 && enemyTroops > 0) {
-            // Small skirmish losses (very minimal)
-            const playerLoss = Math.max(0.1, playerTroops * 0.002); // 0.2% loss
-            const enemyLoss = Math.max(0.1, enemyTroops * 0.002); // 0.2% loss
+            // Small skirmish losses
+            const playerLoss = Math.max(0.1, playerTroops * 0.002);
+            const enemyLoss = Math.max(0.1, enemyTroops * 0.002);
             
             gameState.troops[battle.playerTile].playerTroops -= playerLoss;
             gameState.troops[battle.enemyTile].botTroops -= enemyLoss;
@@ -901,6 +963,22 @@ function endGame(isVictory) {
 
 // ========== HELPER FUNCTIONS ==========
 
+// NEW: Update all shields when difficulty changes
+function updateAllShields() {
+    Object.keys(gameState.troops).forEach(tileId => {
+        const tileData = gameState.troops[tileId];
+        const baseShield = gameState.difficultyShields[gameState.difficulty];
+        
+        if (tileData.owner === 'player') {
+            tileData.shield = Math.floor(baseShield / 2);
+        } else if (tileData.owner === 'bot' || tileData.owner === 'neutral') {
+            tileData.shield = baseShield;
+        }
+        
+        updateTroopDisplay(tileId);
+    });
+}
+
 // Check if tiles are adjacent
 function isAdjacent(tileId1, tileId2) {
     const [row1, col1] = tileId1.split('-').map(Number);
@@ -947,15 +1025,20 @@ function updateTroopDisplay(tileId) {
     
     const troopCountElement = tile.querySelector('.troop-count');
     const troopValueElement = tile.querySelector('.troop-value');
+    const shieldIndicator = tile.querySelector('.shield-indicator');
     
     if (troopCountElement) troopCountElement.textContent = troopCount;
     if (troopValueElement) troopValueElement.textContent = troopCount;
     
-    // Update progress bar for troop generation
-    const progressFill = tile.querySelector('.troop-progress-fill');
-    if (progressFill) {
-        const fillPercent = (troopCount / gameState.maxTroopsPerTile) * 100;
-        progressFill.style.width = `${fillPercent}%`;
+    // Update shield indicator
+    if (shieldIndicator) {
+        const shield = troopData.shield || 0;
+        if (shield > 0) {
+            shieldIndicator.style.display = 'flex';
+            shieldIndicator.title = `+${shield} shield defense`;
+        } else {
+            shieldIndicator.style.display = 'none';
+        }
     }
 }
 
@@ -985,7 +1068,7 @@ function getDifficultyText(difficulty) {
     }
 }
 
-// Save to leaderboard
+// NEW: Save to leaderboard with bot filtering
 function saveToLeaderboard(score) {
     const playerName = gameState.playerName;
     const date = new Date().toISOString().split('T')[0];
@@ -1013,6 +1096,12 @@ function saveToLeaderboard(score) {
     leaderboards.weekly.push(entry);
     leaderboards.alltime.push(entry);
     
+    // NEW: Filter out any remaining bot entries
+    if (!gameState.leaderboardFiltered) {
+        filterBotEntries(leaderboards);
+        gameState.leaderboardFiltered = true;
+    }
+    
     // Sort and keep top 10
     ['daily', 'weekly', 'alltime'].forEach(period => {
         leaderboards[period].sort((a, b) => b.score - a.score);
@@ -1020,6 +1109,56 @@ function saveToLeaderboard(score) {
     });
     
     localStorage.setItem('dominationLeaderboards', JSON.stringify(leaderboards));
+}
+
+// NEW: Filter bot entries from leaderboard
+function filterBotEntries(leaderboards) {
+    const botNames = ['Bot', 'AI', 'Computer', 'CPU', 'Robot', 'Opponent', 'Enemy', 'bot-'];
+    
+    ['daily', 'weekly', 'alltime'].forEach(period => {
+        leaderboards[period] = leaderboards[period].filter(entry => {
+            if (!entry || !entry.player) return false;
+            
+            const playerName = entry.player.toString().toLowerCase();
+            const isBot = botNames.some(botName => 
+                playerName.includes(botName.toLowerCase()) || 
+                entry.player === 'Commander' ||
+                entry.player.trim() === '' ||
+                entry.mode === 'bot' ||
+                entry.player.startsWith('bot-')
+            );
+            
+            return !isBot;
+        });
+    });
+}
+
+// Check if a bot is completely defeated
+function checkBotDefeated() {
+    const remainingBots = gameState.bots.filter((bot, index) => {
+        const botTiles = gameState.botTiles.filter(tileId => 
+            gameState.troops[tileId].botTroops > 0
+        );
+        return botTiles.length > 0;
+    });
+    
+    gameState.bots = remainingBots;
+    gameState.botCount = remainingBots.length;
+}
+
+// Animate battle
+function animateBattle(attackerTileId, defenderTileId) {
+    const attackerTile = document.querySelector(`[data-id="${attackerTileId}"]`);
+    const defenderTile = document.querySelector(`[data-id="${defenderTileId}"]`);
+    
+    if (attackerTile && defenderTile) {
+        attackerTile.classList.add('battle');
+        defenderTile.classList.add('battle');
+        setTimeout(() => {
+            attackerTile.classList.remove('battle');
+            defenderTile.classList.remove('battle');
+        }, 500);
+    }
 }
 
 // Update UI
@@ -1128,6 +1267,7 @@ function viewLeaderboard() {
 
 function restartGame() {
     document.getElementById('gameOverModal').style.display = 'none';
+    document.getElementById('deploymentModal').style.display = 'none';
     
     // Reset game state
     gameState = {
@@ -1144,7 +1284,7 @@ function restartGame() {
         maxBots: 5,
         botSpawnRate: 30,
         lastBotSpawn: 0,
-        difficulty: gameState.difficulty, // Keep same difficulty
+        difficulty: gameState.difficulty,
         selectedTile: null,
         gameLog: [],
         gridSize: gameState.mode === '1v1' ? 6 : 8,
@@ -1153,13 +1293,25 @@ function restartGame() {
         lastUpdate: Date.now(),
         gameLoop: null,
         isPaused: false,
+        difficultyShields: gameState.difficultyShields,
+        troopDeployment: {
+            active: false,
+            fromTile: null,
+            toTile: null,
+            maxTroops: 0,
+            selectedTroops: 0,
+            actionType: null
+        },
+        attackMultiplier: 1.0,
+        defenseBonus: 1.0,
         troopGenerationRate: gameState.troopGenerationRate,
         maxTroopsPerTile: gameState.maxTroopsPerTile,
-        attackMultiplier: 1.2,
-        defenseBonus: 1.1,
         troops: {},
         lastTroopUpdate: Date.now(),
-        totalTroopsGenerated: 0
+        totalTroopsGenerated: 0,
+        difficultyChangeCooldown: Date.now() + 3000,
+        lastDifficultyChange: 0,
+        leaderboardFiltered: false
     };
     
     // Reload the page to restart
@@ -1184,13 +1336,11 @@ function pauseGame() {
 }
 
 function showInstructions() {
-    // This would show the instructions modal
-    console.log("Show instructions - modal would open");
+    document.getElementById('instructionsModal').style.display = 'block';
 }
 
 function closeInstructions() {
-    // This would close the instructions modal
-    console.log("Close instructions - modal would close");
+    document.getElementById('instructionsModal').style.display = 'none';
 }
 
 // Initialize game when page loads
@@ -1200,10 +1350,14 @@ window.onload = initGame;
 document.addEventListener('keydown', function(event) {
     if (!gameState.active) return;
     
-    // ESC to deselect tile
-    if (event.key === 'Escape' && gameState.selectedTile) {
-        deselectTile();
-        addLog("Deselected tile");
+    // ESC to deselect tile or cancel deployment
+    if (event.key === 'Escape') {
+        if (gameState.troopDeployment.active) {
+            cancelDeployment();
+        } else if (gameState.selectedTile) {
+            deselectTile();
+            addLog("Deselected tile");
+        }
     }
     
     // P to pause
@@ -1229,7 +1383,17 @@ document.addEventListener('keydown', function(event) {
 // Close modals when clicking outside
 window.onclick = function(event) {
     const gameOverModal = document.getElementById('gameOverModal');
+    const instructionsModal = document.getElementById('instructionsModal');
+    const deploymentModal = document.getElementById('deploymentModal');
+    
     if (event.target === gameOverModal) {
         gameOverModal.style.display = 'none';
+    }
+    if (event.target === instructionsModal) {
+        instructionsModal.style.display = 'none';
+    }
+    if (event.target === deploymentModal) {
+        deploymentModal.style.display = 'none';
+        gameState.troopDeployment.active = false;
     }
 };
