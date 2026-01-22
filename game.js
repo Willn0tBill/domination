@@ -23,16 +23,16 @@ let gameState = {
     gameLoop: null,
     isPaused: false,
     
-    // New RTS Elements
+    // RTS Elements
     troopGenerationRate: 0.5, // Troops per second per tile
     maxTroopsPerTile: 50,
     attackMultiplier: 1.2, // Need 1.2x troops to conquer
-    defenseBonus: 1.1, // Defenders get bonus
+    defenseBonus: 1.1, // Defenders get 10% bonus
     
     // Troop Data Structure
-    troops: {}, // tileId: {playerTroops: number, botTroops: number, neutralTroops: number}
+    troops: {}, // tileId: {playerTroops: number, botTroops: number, neutralTroops: number, owner: string}
     
-    // For Domination (real-time) mode
+    // For real-time mode
     lastTroopUpdate: Date.now()
 };
 
@@ -48,6 +48,12 @@ const gameModeDisplay = document.getElementById('gameModeDisplay');
 const currentPlayerNameElement = document.getElementById('currentPlayerName');
 const modeInfoElement = document.getElementById('modeInfo');
 const gameTimeElement = document.getElementById('gameTime');
+const totalTroopsElement = document.getElementById('totalTroops');
+const botCountInfoElement = document.getElementById('botCountInfo');
+const troopRateElement = document.getElementById('troopRate');
+const gameStatusTextElement = document.getElementById('gameStatusText');
+const difficultyIndicator = document.getElementById('difficultyIndicator');
+const pauseBtn = document.getElementById('pauseBtn');
 
 // Initialize Game
 function initGame() {
@@ -57,8 +63,9 @@ function initGame() {
     
     // Update UI
     currentPlayerNameElement.textContent = gameState.playerName;
-    gameModeDisplay.textContent = getModeName(gameState.mode);
-    modeInfoElement.textContent = getModeName(gameState.mode);
+    const modeName = getModeName(gameState.mode);
+    gameModeDisplay.textContent = modeName;
+    modeInfoElement.textContent = modeName;
     
     // Set grid size based on mode
     gameState.gridSize = gameState.mode === '1v1' ? 6 : 8;
@@ -69,17 +76,20 @@ function initGame() {
     // Start game based on mode
     if (gameState.mode === 'domination') {
         startDomination();
-        startGameLoop();
     } else if (gameState.mode === 'bots') {
         startBotsBattle();
-        startGameLoop();
     } else if (gameState.mode === '1v1') {
         start1v1();
-        startGameLoop();
     }
     
     updateUI();
-    addLog(`Welcome, ${gameState.playerName}! Game started in ${getModeName(gameState.mode)} mode.`);
+    addLog(`Welcome, ${gameState.playerName}! Game started in ${modeName} mode.`);
+    
+    // Hide turn-based controls (not used in real-time)
+    document.getElementById('endTurnBtn').style.display = 'none';
+    
+    // Start game loop
+    startGameLoop();
 }
 
 // Create game tiles
@@ -122,6 +132,14 @@ function createTiles() {
             info.className = 'tile-info';
             info.innerHTML = '<span class="troop-label">Troops:</span><span class="troop-value">0</span>';
             content.appendChild(info);
+            
+            // Progress bar for troop generation
+            const progress = document.createElement('div');
+            progress.className = 'troop-progress';
+            const progressFill = document.createElement('div');
+            progressFill.className = 'troop-progress-fill';
+            progress.appendChild(progressFill);
+            content.appendChild(progress);
             
             tile.appendChild(content);
             tile.addEventListener('click', () => handleTileClick(tileId));
@@ -167,8 +185,8 @@ function startDomination() {
     // Spawn initial bots
     spawnBots(2);
     
-    // Game runs in real-time for Domination
     gameState.lastTroopUpdate = Date.now();
+    gameStatus.textContent = "Domination Mode: Expand your territory!";
 }
 
 // Start Bots Battle mode
@@ -185,6 +203,8 @@ function startBotsBattle() {
     
     // Spawn bots in opposite corner
     spawnBots(4);
+    
+    gameStatus.textContent = "Bots Battle: Defeat all enemy bots!";
 }
 
 // Start 1v1 mode
@@ -215,6 +235,8 @@ function start1v1() {
     
     addLog("1v1 Challenge: Face the elite bot in intense combat!");
     gameState.difficulty = 3;
+    
+    gameStatus.textContent = "1v1 Challenge: Defeat the elite bot!";
 }
 
 // Start the game loop
@@ -240,7 +262,9 @@ function startGameLoop() {
         // Bot AI actions
         if (gameState.mode === 'domination') {
             // Faster bot actions for domination
-            botActions(deltaTime);
+            if (Math.random() < 0.7) {
+                botActions(deltaTime);
+            }
         } else {
             // Slower for other modes
             if (Math.random() < 0.3) {
@@ -332,7 +356,8 @@ function selectTile(tileId) {
     const tile = document.querySelector(`[data-id="${tileId}"]`);
     tile.classList.add('selected');
     
-    addLog(`Selected ${tileId} with ${Math.floor(gameState.troops[tileId].playerTroops)} troops`);
+    const troops = Math.floor(gameState.troops[tileId].playerTroops);
+    addLog(`Selected ${tileId} with ${troops} troops`);
 }
 
 // Deselect tile
@@ -366,7 +391,7 @@ function attackTile(attackerTileId, defenderTileId) {
     const defenderData = gameState.troops[defenderTileId];
     
     // Calculate attack strength
-    let attackStrength = attackerData.playerTroops;
+    let attackStrength = attackerData.playerTroops * 0.5; // Use 50% of troops for attack
     let defenseStrength = 0;
     let defenderOwner = 'neutral';
     
@@ -387,13 +412,14 @@ function attackTile(attackerTileId, defenderTileId) {
         const remainingAttackers = attackStrength - Math.floor(casualties * 0.5); // Attackers lose half of defender casualties
         
         // Update troop counts
-        attackerData.playerTroops = 0;
+        attackerData.playerTroops -= attackStrength;
         
         if (defenderOwner === 'neutral') {
             // Conquer neutral tile
             defenderData.neutralTroops = 0;
             defenderData.playerTroops = remainingAttackers;
             conquerTile(defenderTileId, 'player');
+            gameState.score += 25 * gameState.difficulty;
         } else if (defenderOwner === 'bot') {
             // Conquer bot tile
             defenderData.botTroops = 0;
@@ -402,15 +428,13 @@ function attackTile(attackerTileId, defenderTileId) {
             gameState.score += 100 * gameState.difficulty;
         }
         
-        addLog(`Victory! Conquered ${defenderTileId} with ${remainingAttackers} troops remaining`);
+        addLog(`Victory! Conquered ${defenderTileId} with ${Math.floor(remainingAttackers)} troops remaining`);
         
         // Check if bot was defeated
         if (defenderOwner === 'bot') {
-            const botIndex = gameState.bots.findIndex(bot => 
-                gameState.botTiles.length === 0
-            );
-            if (botIndex !== -1) {
-                gameState.bots.splice(botIndex, 1);
+            const botTileCount = gameState.botTiles.length;
+            if (botTileCount === 0) {
+                gameState.bots = [];
                 gameState.botsDefeated++;
             }
         }
@@ -431,6 +455,16 @@ function attackTile(attackerTileId, defenderTileId) {
         
         addLog(`Attack failed! Lost ${attackerCasualties} troops`);
     }
+    
+    // Add battle animation
+    const attackerTile = document.querySelector(`[data-id="${attackerTileId}"]`);
+    const defenderTile = document.querySelector(`[data-id="${defenderTileId}"]`);
+    attackerTile.classList.add('battle');
+    defenderTile.classList.add('battle');
+    setTimeout(() => {
+        attackerTile.classList.remove('battle');
+        defenderTile.classList.remove('battle');
+    }, 500);
     
     updateTroopDisplay(attackerTileId);
     updateTroopDisplay(defenderTileId);
@@ -477,6 +511,8 @@ function conquerTile(tileId, newOwner) {
         tile.classList.remove('player', 'bot', 'neutral');
         tile.classList.add('neutral');
     }
+    
+    updateTroopDisplay(tileId);
 }
 
 // Bot AI actions
@@ -657,7 +693,8 @@ function processBattles() {
     });
     
     // Process a few random battles each tick
-    for (let i = 0; i < Math.min(3, borderTiles.length); i++) {
+    const battlesToProcess = Math.min(2, borderTiles.length);
+    for (let i = 0; i < battlesToProcess; i++) {
         const battle = borderTiles[Math.floor(Math.random() * borderTiles.length)];
         const playerTroops = gameState.troops[battle.playerTile].playerTroops;
         const enemyTroops = gameState.botTiles.includes(battle.enemyTile) ? 
@@ -665,8 +702,8 @@ function processBattles() {
             gameState.troops[battle.enemyTile].neutralTroops;
         
         // Small skirmish losses
-        const playerLoss = Math.floor(playerTroops * 0.01);
-        const enemyLoss = Math.floor(enemyTroops * 0.01);
+        const playerLoss = Math.floor(playerTroops * 0.005); // 0.5% loss
+        const enemyLoss = Math.floor(enemyTroops * 0.005); // 0.5% loss
         
         gameState.troops[battle.playerTile].playerTroops -= playerLoss;
         
@@ -697,31 +734,34 @@ function checkGameEnd() {
         return;
     }
     
-    // Player wins if no bots left (for Bots Battle and 1v1)
-    if (gameState.mode !== 'domination' && gameState.botTiles.length === 0 && gameState.bots.length === 0) {
+    // For Bots Battle: win if no bots left
+    if (gameState.mode === 'bots' && gameState.botTiles.length === 0 && gameState.bots.length === 0) {
         endGame(true);
         return;
     }
     
-    // Domination mode: win by controlling 70% of the board
+    // For 1v1: win if bot has no tiles
+    if (gameState.mode === '1v1' && gameState.botTiles.length === 0) {
+        endGame(true);
+        return;
+    }
+    
+    // For Domination: win by controlling 60% of the board
     if (gameState.mode === 'domination') {
         const totalTiles = gameState.gridSize * gameState.gridSize;
         const playerPercentage = gameState.playerTiles.length / totalTiles;
         
-        if (playerPercentage > 0.7) {
+        if (playerPercentage > 0.6) {
             endGame(true);
         }
     }
     
-    // 1v1 mode: win by controlling 60% of the board
+    // For 1v1: lose if bot controls 60% of the board
     if (gameState.mode === '1v1') {
         const totalTiles = gameState.gridSize * gameState.gridSize;
-        const playerPercentage = gameState.playerTiles.length / totalTiles;
         const botPercentage = gameState.botTiles.length / totalTiles;
         
-        if (playerPercentage > 0.6) {
-            endGame(true);
-        } else if (botPercentage > 0.6) {
+        if (botPercentage > 0.6) {
             endGame(false);
         }
     }
@@ -753,21 +793,6 @@ function endGame(isVictory) {
     // Victory bonus
     if (isVictory) {
         finalScore = Math.floor(finalScore * 1.5);
-    }
-    
-    // Save to leaderboard if in domination mode
-    if (gameState.mode === 'domination') {
-        saveToLeaderboard(finalScore);
-    }
-    
-    // Show game over modal
-    document.getElementById('finalScore').textContent = finalScore;
-    document.getElementById('finalTime').textContent = formatTime(gameState.gameTime);
-    document.getElementById('finalTiles').textContent = gameState.playerTiles.length;
-    document.getElementById('finalBots').textContent = gameState.botsDefeated;
-    document.getElementById('finalTroops').textContent = totalPlayerTroops();
-    
-    if (isVictory) {
         document.getElementById('gameOverTitle').textContent = 'Victory!';
         document.getElementById('gameOverMessage').textContent = 'You dominated the battlefield!';
         addLog("Congratulations! You achieved victory!");
@@ -777,9 +802,22 @@ function endGame(isVictory) {
         addLog("Game over! Your forces have been defeated.");
     }
     
+    // Update final stats
+    document.getElementById('finalScore').textContent = finalScore;
+    document.getElementById('finalTime').textContent = formatTime(gameState.gameTime);
+    document.getElementById('finalTiles').textContent = gameState.playerTiles.length;
+    document.getElementById('finalBots').textContent = gameState.botsDefeated;
+    document.getElementById('finalTroops').textContent = totalPlayerTroops();
+    document.getElementById('finalDifficulty').textContent = getDifficultyText(gameState.difficulty);
+    
     // Show leaderboard button only for domination mode
     document.getElementById('viewLeaderboardBtn').style.display = 
         gameState.mode === 'domination' ? 'flex' : 'none';
+    
+    // Save to leaderboard if in domination mode
+    if (gameState.mode === 'domination') {
+        saveToLeaderboard(finalScore);
+    }
     
     document.getElementById('gameOverModal').style.display = 'block';
 }
@@ -852,6 +890,17 @@ function formatTime(seconds) {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
+function getDifficultyText(difficulty) {
+    switch(difficulty) {
+        case 1: return "Easy";
+        case 2: return "Normal";
+        case 3: return "Hard";
+        case 4: return "Very Hard";
+        case 5: return "Extreme";
+        default: return "Unknown";
+    }
+}
+
 // Save to leaderboard
 function saveToLeaderboard(score) {
     const playerName = gameState.playerName;
@@ -894,18 +943,53 @@ function updateUI() {
     currentScoreElement.textContent = gameState.score;
     botCountElement.textContent = gameState.botCount;
     
+    // Update total troops
+    if (totalTroopsElement) {
+        totalTroopsElement.textContent = totalPlayerTroops();
+    }
+    
     // Update game time
     if (gameTimeElement) {
         gameTimeElement.textContent = formatTime(gameState.gameTime);
     }
     
-    // Update difficulty display
-    let difficultyText = "Easy";
-    if (gameState.difficulty >= 4) difficultyText = "Extreme";
-    else if (gameState.difficulty >= 3) difficultyText = "Hard";
-    else if (gameState.difficulty >= 2) difficultyText = "Normal";
+    // Update bot count info
+    if (botCountInfoElement) {
+        botCountInfoElement.textContent = gameState.botCount;
+    }
     
-    if (difficultyLevelElement) difficultyLevelElement.textContent = difficultyText;
+    // Update troop rate
+    if (troopRateElement) {
+        troopRateElement.textContent = `${gameState.troopGenerationRate}/sec`;
+    }
+    
+    // Update game status text
+    if (gameStatusTextElement) {
+        gameStatusTextElement.textContent = gameState.isPaused ? "Paused" : "Playing";
+        gameStatusTextElement.style.color = gameState.isPaused ? "#ffa500" : "#00d2ff";
+    }
+    
+    // Update difficulty display
+    if (difficultyLevelElement) {
+        difficultyLevelElement.textContent = getDifficultyText(gameState.difficulty);
+    }
+    
+    // Update difficulty indicator
+    updateDifficultyIndicator();
+}
+
+function updateDifficultyIndicator() {
+    if (!difficultyIndicator) return;
+    
+    difficultyIndicator.innerHTML = '';
+    for (let i = 0; i < 5; i++) {
+        const dot = document.createElement('div');
+        dot.className = 'diff-dot';
+        if (i < gameState.difficulty) {
+            dot.classList.add('active');
+        }
+        difficultyIndicator.appendChild(dot);
+    }
 }
 
 // Add log message
@@ -993,7 +1077,6 @@ function restartGame() {
 
 function pauseGame() {
     gameState.isPaused = !gameState.isPaused;
-    const pauseBtn = document.getElementById('pauseBtn');
     if (pauseBtn) {
         pauseBtn.innerHTML = gameState.isPaused ? 
             '<i class="fas fa-play"></i> Resume' : 
@@ -1006,6 +1089,32 @@ function pauseGame() {
     } else {
         addLog("Game resumed");
         gameStatus.textContent = "Game in Progress";
+    }
+}
+
+function showInstructions() {
+    document.getElementById('instructionsModal').style.display = 'block';
+}
+
+function closeInstructions() {
+    document.getElementById('instructionsModal').style.display = 'none';
+}
+
+function endPlayerTurn() {
+    // This function is kept for compatibility but not used in real-time mode
+    addLog("Turn-based mode is not active in this version.");
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+    const instructionsModal = document.getElementById('instructionsModal');
+    const gameOverModal = document.getElementById('gameOverModal');
+    
+    if (event.target === instructionsModal) {
+        closeInstructions();
+    }
+    if (event.target === gameOverModal) {
+        gameOverModal.style.display = 'none';
     }
 }
 
