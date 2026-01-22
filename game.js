@@ -25,8 +25,8 @@ let gameState = {
     isPaused: false,
     
     // Game settings
-    troopGenerationRate: 0.5,
-    maxTroopsPerTile: 50,
+    troopGenerationRate: 1,
+    maxTroopsPerTile: 100,
     troops: {},
     
     // New features
