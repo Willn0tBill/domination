@@ -1,5 +1,3 @@
-<!-- wsg gng -->
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -23,7 +21,7 @@
             
             <div class="main-title">
                 <h1><i class="fas fa-crown"></i> DOMINATION</h1>
-                <p class="subtitle">Real-Time Strategy Game - Conquer, Expand, Dominate!</p>
+                <p class="subtitle">Territory Control Strategy Game</p>
                 <div class="difficulty-selector">
                     <span>Difficulty:</span>
                     <select id="difficultySelect">
@@ -48,23 +46,23 @@
                     </div>
                     
                     <div class="player-stats-preview">
-                        <h3><i class="fas fa-chart-bar"></i> Starting Stats</h3>
+                        <h3><i class="fas fa-chart-bar"></i> Difficulty Stats</h3>
                         <div class="stats-grid">
                             <div class="stat">
                                 <span class="stat-label">Starting Troops</span>
-                                <span class="stat-value" id="startTroops">40</span>
+                                <span class="stat-value" id="startTroops">30</span>
                             </div>
                             <div class="stat">
                                 <span class="stat-label">Starting Tiles</span>
-                                <span class="stat-value" id="startTiles">4</span>
+                                <span class="stat-value" id="startTiles">3</span>
                             </div>
                             <div class="stat">
                                 <span class="stat-label">Troop Rate</span>
-                                <span class="stat-value" id="troopRate">0.6/sec</span>
+                                <span class="stat-value" id="troopRate">1.0/sec</span>
                             </div>
                             <div class="stat">
-                                <span class="stat-label">Bot Rate</span>
-                                <span class="stat-value" id="botRate">45s</span>
+                                <span class="stat-label">Bot Spawn Rate</span>
+                                <span class="stat-value" id="botRate">60s</span>
                             </div>
                         </div>
                     </div>
@@ -79,14 +77,14 @@
                             <i class="fas fa-globe-americas"></i>
                         </div>
                         <h3>DOMINATION</h3>
-                        <p class="mode-description">Endless survival mode! The map grows 25x25 every 5 minutes. Face increasing bot waves in an ever-expanding battlefield. Your goal: survive as long as possible!</p>
+                        <p class="mode-description">The ultimate endurance challenge! Survive against infinite waves of bots as the map grows every 5 minutes. Conquer as much territory as you can!</p>
                         <div class="mode-details">
-                            <div class="detail"><i class="fas fa-user-clock"></i> Endless Survival</div>
-                            <div class="detail"><i class="fas fa-expand-alt"></i> Growing Map</div>
+                            <div class="detail"><i class="fas fa-expand-arrows-alt"></i> Expanding 25x25 Map</div>
+                            <div class="detail"><i class="fas fa-robot"></i> Infinite Bot Waves</div>
                             <div class="detail"><i class="fas fa-trophy"></i> Global Leaderboard</div>
                         </div>
                         <button class="play-btn domination" onclick="startGame('domination')">
-                            <i class="fas fa-play-circle"></i> Endless Campaign
+                            <i class="fas fa-play-circle"></i> Start Domination
                         </button>
                     </div>
                     
@@ -95,14 +93,14 @@
                             <i class="fas fa-robot"></i>
                         </div>
                         <h3>BOTS BATTLE</h3>
-                        <p class="mode-description">Classic 8x8 strategy. Face multiple AI commanders in a fixed battlefield. Eliminate all opponents to claim victory in this intense skirmish.</p>
+                        <p class="mode-description">Battle against multiple AI commanders in a fixed arena. Eliminate all opponents to claim victory in this intense skirmish.</p>
                         <div class="mode-details">
-                            <div class="detail"><i class="fas fa-users"></i> 8x8 Battlefield</div>
+                            <div class="detail"><i class="fas fa-users"></i> Multiple Opponents</div>
                             <div class="detail"><i class="fas fa-crosshairs"></i> Last Commander Standing</div>
                             <div class="detail"><i class="fas fa-bolt"></i> Fast-Paced Action</div>
                         </div>
                         <button class="play-btn bots" onclick="startGame('bots')">
-                            <i class="fas fa-play-circle"></i> Engage Skirmish
+                            <i class="fas fa-play-circle"></i> Start Battle
                         </button>
                     </div>
                     
@@ -111,7 +109,7 @@
                             <i class="fas fa-crosshairs"></i>
                         </div>
                         <h3>1V1 DUEL</h3>
-                        <p class="mode-description">Challenge an elite AI commander in a tactical duel. Outmaneuver and outthink your opponent in this chess-like showdown on an 8x8 grid.</p>
+                        <p class="mode-description">Challenge an elite AI commander in a tactical duel. Outmaneuver and outthink your opponent in this chess-like showdown.</p>
                         <div class="mode-details">
                             <div class="detail"><i class="fas fa-chess-king"></i> Elite AI Opponent</div>
                             <div class="detail"><i class="fas fa-brain"></i> High-Stakes Strategy</div>
@@ -127,23 +125,20 @@
             <div class="menu-actions">
                 <div class="action-buttons">
                     <button class="action-btn leaderboard" onclick="viewLeaderboard()">
-                        <i class="fas fa-trophy"></i> View Leaderboards
+                        <i class="fas fa-trophy"></i> Global Leaderboard
                     </button>
                     <button class="action-btn tutorial" onclick="showHowToPlay()">
-                        <i class="fas fa-graduation-cap"></i> Tactical Tutorial
-                    </button>
-                    <button class="action-btn settings" onclick="showSettings()">
-                        <i class="fas fa-cog"></i> Game Settings
+                        <i class="fas fa-graduation-cap"></i> How to Play
                     </button>
                 </div>
                 
                 <div class="game-tips">
                     <h3><i class="fas fa-lightbulb"></i> Pro Tips</h3>
                     <ul>
-                        <li>Click your tile to select it, then click adjacent tile to attack/move</li>
-                        <li>You need <strong>1.2x more troops</strong> than the defender to conquer</li>
-                        <li>Consolidate troops on border tiles for defense</li>
-                        <li>In Domination mode, focus on survival as the map grows</li>
+                        <li>Select your tile, then click adjacent tile to attack/move</li>
+                        <li>Use bottom slider to control troop deployment amount</li>
+                        <li>Expand early to increase your troop generation</li>
+                        <li>Higher difficulties give better score multipliers</li>
                     </ul>
                 </div>
             </div>
@@ -153,7 +148,7 @@
             <div class="footer-content">
                 <div class="footer-left">
                     <h3><i class="fas fa-crown"></i> DOMINATION</h3>
-                    <p>Real-Time Strategy Game</p>
+                    <p>Territory Control Strategy Game</p>
                     <p class="copyright">© 2026 Whatever Studios. All rights reserved.</p>
                 </div>
                 
@@ -162,7 +157,7 @@
                         <i class="fas fa-gamepad"></i>
                         <div>
                             <span class="studio-name">Whatever Studios</span>
-                            <span class="studio-tagline">Crafting digital experiences from the ground up</span>
+                            <span class="studio-tagline">2026 Edition</span>
                         </div>
                     </a>
                 </div>
@@ -170,17 +165,16 @@
                 <div class="footer-right">
                     <h4>Game Features</h4>
                     <ul>
-                        <li>Real-time Strategy Gameplay</li>
-                        <li>Three Unique Battle Modes</li>
-                        <li>Global Leaderboard System</li>
+                        <li>Three Unique Game Modes</li>
+                        <li>Global Leaderboard</li>
                         <li>Progressive Difficulty</li>
+                        <li>Mobile Friendly</li>
                     </ul>
                 </div>
             </div>
             
             <div class="footer-bottom">
                 <p>Domination is a browser-based strategy game created with HTML5, CSS3 & JavaScript</p>
-                <p>Visit our studio: <a href="https://willn0tbill.github.io/WtvStudios/index.html" target="_blank">Whatever Studios</a></p>
             </div>
         </footer>
     </div>
@@ -190,30 +184,35 @@
         <div class="modal-content">
             <span class="close-modal" onclick="closeHowToPlay()">&times;</span>
             <div class="modal-header">
-                <h2><i class="fas fa-graduation-cap"></i> Domination Tactical Guide</h2>
+                <h2><i class="fas fa-graduation-cap"></i> How to Play Domination</h2>
                 <p class="modal-subtitle">Master the battlefield with these essential strategies</p>
             </div>
             
             <div class="modal-body">
-                <div class="mode-selection">
-                    <button class="mode-tab active" onclick="showGameModeGuide('domination')">Domination</button>
-                    <button class="mode-tab" onclick="showGameModeGuide('bots')">Bots Battle</button>
-                    <button class="mode-tab" onclick="showGameModeGuide('1v1')">1v1 Duel</button>
-                </div>
-                
-                <div class="guide-section" id="dominationGuide">
+                <div class="guide-section">
                     <div class="guide-card">
                         <div class="guide-icon">
-                            <i class="fas fa-expand-alt"></i>
+                            <i class="fas fa-mouse-pointer"></i>
                         </div>
-                        <h3>Endless Domination Mode</h3>
+                        <h3>Basic Controls</h3>
                         <ul>
-                            <li><strong>Endless Survival:</strong> Survive as long as possible</li>
-                            <li><strong>Growing Map:</strong> Map expands 25x25 every 5 minutes</li>
-                            <li><strong>Increasing Waves:</strong> Bots get harder and more numerous each wave</li>
-                            <li><strong>Global Leaderboard:</strong> Compete for highest survival time</li>
-                            <li><strong>Zoom Controls:</strong> Use mouse wheel or +/- keys to zoom</li>
-                            <li><strong>Pan Controls:</strong> Click and drag to move around the map</li>
+                            <li><strong>Select Tile:</strong> Click on any tile you control</li>
+                            <li><strong>Move/Attack:</strong> Select your tile, then click adjacent tile</li>
+                            <li><strong>Troop Slider:</strong> Use bottom slider to choose deployment amount</li>
+                            <li><strong>Zoom:</strong> Use +/- buttons (Domination mode)</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="guide-card">
+                        <div class="guide-icon">
+                            <i class="fas fa-balance-scale"></i>
+                        </div>
+                        <h3>Combat System</h3>
+                        <ul>
+                            <li><strong>Difference-Based:</strong> Attacker needs more troops than defender</li>
+                            <li><strong>Shield System:</strong> Tiles have defense bonuses</li>
+                            <li><strong>Custom Deployment:</strong> Choose exact troop amount</li>
+                            <li><strong>Max Troops:</strong> 100 troops per tile</li>
                         </ul>
                     </div>
                     
@@ -223,23 +222,10 @@
                         </div>
                         <h3>Tile Types</h3>
                         <ul>
-                            <li><span class="tile-sample player"></span> <strong>Blue:</strong> Your territory - generates troops</li>
-                            <li><span class="tile-sample bot"></span> <strong>Red:</strong> Enemy territory - attacks automatically</li>
-                            <li><span class="tile-sample neutral"></span> <strong>Gray:</strong> Neutral land - has defense troops</li>
-                            <li><span class="tile-sample selected"></span> <strong>Gold Border:</strong> Selected tile ready for action</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="guide-card">
-                        <div class="guide-icon">
-                            <i class="fas fa-crosshairs"></i>
-                        </div>
-                        <h3>Combat System</h3>
-                        <ul>
-                            <li>Attackers need more troops than defenders</li>
-                            <li>Defenders get shield bonus based on difficulty</li>
-                            <li>Use bottom slider to select troop amount</li>
-                            <li>Only attack adjacent tiles</li>
+                            <li><span class="tile-sample player"></span> <strong>Blue:</strong> Your territory</li>
+                            <li><span class="tile-sample bot"></span> <strong>Red:</strong> Enemy territory</li>
+                            <li><span class="tile-sample neutral"></span> <strong>Gray:</strong> Neutral land</li>
+                            <li><span class="tile-sample selected"></span> <strong>Gold Border:</strong> Selected tile</li>
                         </ul>
                     </div>
                     
@@ -247,141 +233,14 @@
                         <div class="guide-icon">
                             <i class="fas fa-chess-queen"></i>
                         </div>
-                        <h3>Strategy for Domination</h3>
+                        <h3>Game Modes</h3>
                         <ul>
-                            <li>Expand early to increase troop generation</li>
-                            <li>Create buffer zones with neutral tiles</li>
-                            <li>Consolidate troops before major attacks</li>
-                            <li>Watch for bot troop movements on borders</li>
-                            <li>Survival is key to high scores</li>
+                            <li><strong>Domination:</strong> Infinite survival, expanding map</li>
+                            <li><strong>Bots Battle:</strong> Eliminate all AI opponents</li>
+                            <li><strong>1v1 Duel:</strong> Defeat the elite AI commander</li>
                         </ul>
                     </div>
                 </div>
-                
-                <div class="guide-section" id="botsGuide" style="display: none;">
-                    <!-- Bots Battle specific guide -->
-                    <div class="guide-card">
-                        <div class="guide-icon">
-                            <i class="fas fa-robot"></i>
-                        </div>
-                        <h3>Bots Battle Mode</h3>
-                        <ul>
-                            <li><strong>Fixed 8x8 Battlefield:</strong> Classic strategy gameplay</li>
-                            <li><strong>Elimination:</strong> Defeat all bot commanders to win</li>
-                            <li><strong>Multiple Opponents:</strong> Face 3 AI commanders</li>
-                            <li><strong>No Map Growth:</strong> Battlefield remains fixed size</li>
-                        </ul>
-                    </div>
-                </div>
-                
-                <div class="guide-section" id="duelGuide" style="display: none;">
-                    <!-- 1v1 specific guide -->
-                    <div class="guide-card">
-                        <div class="guide-icon">
-                            <i class="fas fa-crosshairs"></i>
-                        </div>
-                        <h3>1v1 Duel Mode</h3>
-                        <ul>
-                            <li><strong>Elite AI:</strong> Face a single powerful opponent</li>
-                            <li><strong>Tactical Combat:</strong> Chess-like strategy on 8x8 grid</li>
-                            <li><strong>Single Opponent:</strong> Defeat the elite bot commander</li>
-                            <li><strong>No Map Growth:</strong> Fixed battlefield</li>
-                        </ul>
-                    </div>
-                </div>
-                
-                <div class="difficulty-explanation">
-                    <h3><i class="fas fa-sliders-h"></i> Difficulty Settings</h3>
-                    <p>The selected difficulty affects:</p>
-                    <div class="difficulty-effects">
-                        <div class="effect"><i class="fas fa-robot"></i> <span>Bot Starting Troops: <span id="diffBotTroops">30</span></span></div>
-                        <div class="effect"><i class="fas fa-user-shield"></i> <span>Bot Shield Bonus: <span id="diffShield">+5</span></span></div>
-                        <div class="effect"><i class="fas fa-tachometer-alt"></i> <span>Bot Aggression: <span id="diffAggression">High</span></span></div>
-                        <div class="effect"><i class="fas fa-star"></i> <span>Score Multiplier: <span id="diffMultiplier">3.0x</span></span></div>
-                    </div>
-                    <p class="note">Higher difficulties provide greater score multipliers but feature more challenging opponents.</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Settings Modal -->
-    <div class="modal" id="settingsModal">
-        <div class="modal-content">
-            <span class="close-modal" onclick="closeSettings()">&times;</span>
-            <h2><i class="fas fa-cog"></i> Game Settings</h2>
-            
-            <div class="settings-group">
-                <h3>Gameplay Settings</h3>
-                
-                <div class="setting">
-                    <label for="combatSpeed">Combat Animation Speed</label>
-                    <div class="slider-container">
-                        <input type="range" id="combatSpeed" min="0.5" max="2.0" step="0.1" value="1.0">
-                        <span id="combatSpeedValue">Normal</span>
-                    </div>
-                </div>
-                
-                <div class="setting">
-                    <label>
-                        <input type="checkbox" id="enableSounds" checked>
-                        Enable Game Sounds
-                    </label>
-                    <p class="setting-note">Note: Sound effects coming in future update</p>
-                </div>
-                
-                <div class="setting">
-                    <label>
-                        <input type="checkbox" id="showGrid" checked>
-                        Show Grid Lines
-                    </label>
-                </div>
-                
-                <div class="setting">
-                    <label>
-                        <input type="checkbox" id="autoSave" checked>
-                        Auto-Save Progress
-                    </label>
-                </div>
-            </div>
-            
-            <div class="settings-group">
-                <h3>Visual Settings</h3>
-                
-                <div class="setting">
-                    <label for="themeSelect">Color Theme</label>
-                    <select id="themeSelect">
-                        <option value="default" selected>Default (Blue/Red)</option>
-                        <option value="green">Green/Orange</option>
-                        <option value="purple">Purple/Yellow</option>
-                        <option value="mono">Monochrome</option>
-                    </select>
-                </div>
-                
-                <div class="setting">
-                    <label for="tileSize">Tile Size</label>
-                    <div class="slider-container">
-                        <input type="range" id="tileSize" min="60" max="120" step="5" value="80">
-                        <span id="tileSizeValue">Normal (80px)</span>
-                    </div>
-                </div>
-                
-                <div class="setting">
-                    <label for="zoomSpeed">Zoom Sensitivity</label>
-                    <div class="slider-container">
-                        <input type="range" id="zoomSpeed" min="0.5" max="2.0" step="0.1" value="1.0">
-                        <span id="zoomSpeedValue">Normal</span>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="modal-buttons">
-                <button class="modal-btn secondary" onclick="resetSettings()">
-                    <i class="fas fa-undo"></i> Reset to Defaults
-                </button>
-                <button class="modal-btn" onclick="saveSettings()">
-                    <i class="fas fa-save"></i> Save Settings
-                </button>
             </div>
         </div>
     </div>
@@ -390,66 +249,63 @@
         // Global settings
         let gameSettings = {
             difficulty: 2,
-            combatSpeed: 1.0,
             enableSounds: true,
             showGrid: true,
-            autoSave: true,
             theme: 'default',
-            tileSize: 80,
-            zoomSpeed: 1.0
+            tileSize: 100
         };
 
-        // Difficulty presets
-        const difficultyPresets = {
+        // Difficulty settings with extreme differences
+        const difficultySettings = {
             1: { // Easy
-                startTroops: 50,
-                startTiles: 5,
-                troopRate: 0.8,
-                botSpawnRate: 60,
-                botTroops: 15,
-                botShield: 0,
-                aggression: 'Low',
-                multiplier: 1.0
+                startingTroops: 50,
+                startingTiles: 5,
+                troopRate: 2.0,
+                botSpawnRate: 90,
+                botStrength: 0.5,
+                botIntelligence: 0.5,
+                shieldBonus: 0,
+                scoreMultiplier: 0.5
             },
             2: { // Normal
-                startTroops: 40,
-                startTiles: 4,
-                troopRate: 0.6,
-                botSpawnRate: 45,
-                botTroops: 25,
-                botShield: 2,
-                aggression: 'Medium',
-                multiplier: 1.5
+                startingTroops: 30,
+                startingTiles: 3,
+                troopRate: 1.0,
+                botSpawnRate: 60,
+                botStrength: 1.0,
+                botIntelligence: 1.0,
+                shieldBonus: 1,
+                scoreMultiplier: 1.0
             },
             3: { // Hard
-                startTroops: 30,
-                startTiles: 3,
-                troopRate: 0.4,
-                botSpawnRate: 30,
-                botTroops: 35,
-                botShield: 4,
-                aggression: 'High',
-                multiplier: 2.0
+                startingTroops: 20,
+                startingTiles: 2,
+                troopRate: 0.7,
+                botSpawnRate: 45,
+                botStrength: 1.5,
+                botIntelligence: 1.5,
+                shieldBonus: 2,
+                scoreMultiplier: 2.0
             },
             4: { // Expert
-                startTroops: 20,
-                startTiles: 2,
-                troopRate: 0.3,
-                botSpawnRate: 20,
-                botTroops: 45,
-                botShield: 6,
-                aggression: 'Very High',
-                multiplier: 2.5
+                startingTroops: 15,
+                startingTiles: 1,
+                troopRate: 0.5,
+                botSpawnRate: 30,
+                botStrength: 2.0,
+                botIntelligence: 2.0,
+                shieldBonus: 3,
+                scoreMultiplier: 3.0
             },
             5: { // Insane
-                startTroops: 10,
-                startTiles: 1,
-                troopRate: 0.2,
-                botSpawnRate: 10,
-                botTroops: 55,
-                botShield: 8,
-                aggression: 'Extreme',
-                multiplier: 3.0
+                startingTroops: 10,
+                startingTiles: 1,
+                troopRate: 0.3,
+                botSpawnRate: 20,
+                botStrength: 3.0,
+                botIntelligence: 3.0,
+                shieldBonus: 5,
+                scoreMultiplier: 5.0
             }
         };
 
@@ -465,19 +321,13 @@
             const difficulty = parseInt(document.getElementById('difficultySelect').value);
             gameSettings.difficulty = difficulty;
             
-            const preset = difficultyPresets[difficulty];
+            const settings = difficultySettings[difficulty];
             
             // Update displayed stats
-            document.getElementById('startTroops').textContent = preset.startTroops;
-            document.getElementById('startTiles').textContent = preset.startTiles;
-            document.getElementById('troopRate').textContent = preset.troopRate + '/sec';
-            document.getElementById('botRate').textContent = preset.botSpawnRate + 's';
-            
-            // Update guide display
-            document.getElementById('diffBotTroops').textContent = preset.botTroops;
-            document.getElementById('diffShield').textContent = '+' + preset.botShield;
-            document.getElementById('diffAggression').textContent = preset.aggression;
-            document.getElementById('diffMultiplier').textContent = preset.multiplier + 'x';
+            document.getElementById('startTroops').textContent = settings.startingTroops;
+            document.getElementById('startTiles').textContent = settings.startingTiles;
+            document.getElementById('troopRate').textContent = settings.troopRate.toFixed(1) + '/sec';
+            document.getElementById('botRate').textContent = settings.botSpawnRate + 's';
             
             // Save difficulty to localStorage
             localStorage.setItem('dominationDifficulty', difficulty);
@@ -488,9 +338,6 @@
             const playerName = setPlayerName();
             localStorage.setItem('dominationGameMode', mode);
             localStorage.setItem('dominationDifficulty', gameSettings.difficulty);
-            
-            // Save settings
-            localStorage.setItem('dominationSettings', JSON.stringify(gameSettings));
             
             // Load the game page
             window.location.href = 'game.html';
@@ -504,22 +351,6 @@
         // Show how to play modal
         function showHowToPlay() {
             document.getElementById('howToPlayModal').style.display = 'block';
-            showGameModeGuide('domination'); // Default to Domination guide
-        }
-
-        // Show specific game mode guide
-        function showGameModeGuide(mode) {
-            // Update tabs
-            document.querySelectorAll('.mode-tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            event.target.classList.add('active');
-            
-            // Show appropriate guide
-            document.querySelectorAll('.guide-section').forEach(section => {
-                section.style.display = 'none';
-            });
-            document.getElementById(mode + 'Guide').style.display = 'block';
         }
 
         // Close how to play modal
@@ -527,85 +358,7 @@
             document.getElementById('howToPlayModal').style.display = 'none';
         }
 
-        // Show settings modal
-        function showSettings() {
-            document.getElementById('settingsModal').style.display = 'block';
-            loadSettingsUI();
-        }
-
-        // Close settings modal
-        function closeSettings() {
-            document.getElementById('settingsModal').style.display = 'none';
-        }
-
-        // Load settings to UI
-        function loadSettingsUI() {
-            // Load saved settings or use defaults
-            const savedSettings = localStorage.getItem('dominationSettings');
-            if (savedSettings) {
-                gameSettings = JSON.parse(savedSettings);
-            }
-            
-            // Update UI elements
-            document.getElementById('combatSpeed').value = gameSettings.combatSpeed;
-            document.getElementById('combatSpeedValue').textContent = 
-                gameSettings.combatSpeed === 1.0 ? 'Normal' : 
-                gameSettings.combatSpeed < 1.0 ? 'Slow' : 'Fast';
-            
-            document.getElementById('enableSounds').checked = gameSettings.enableSounds;
-            document.getElementById('showGrid').checked = gameSettings.showGrid;
-            document.getElementById('autoSave').checked = gameSettings.autoSave;
-            document.getElementById('themeSelect').value = gameSettings.theme;
-            document.getElementById('tileSize').value = gameSettings.tileSize;
-            document.getElementById('tileSizeValue').textContent = 
-                `Normal (${gameSettings.tileSize}px)`;
-            document.getElementById('zoomSpeed').value = gameSettings.zoomSpeed;
-            document.getElementById('zoomSpeedValue').textContent = 
-                gameSettings.zoomSpeed === 1.0 ? 'Normal' : 
-                gameSettings.zoomSpeed < 1.0 ? 'Slow' : 'Fast';
-        }
-
-        // Save settings
-        function saveSettings() {
-            gameSettings.combatSpeed = parseFloat(document.getElementById('combatSpeed').value);
-            gameSettings.enableSounds = document.getElementById('enableSounds').checked;
-            gameSettings.showGrid = document.getElementById('showGrid').checked;
-            gameSettings.autoSave = document.getElementById('autoSave').checked;
-            gameSettings.theme = document.getElementById('themeSelect').value;
-            gameSettings.tileSize = parseInt(document.getElementById('tileSize').value);
-            gameSettings.zoomSpeed = parseFloat(document.getElementById('zoomSpeed').value);
-            
-            localStorage.setItem('dominationSettings', JSON.stringify(gameSettings));
-            closeSettings();
-            
-            // Apply theme immediately if on game page
-            if (typeof applyTheme === 'function') {
-                applyTheme(gameSettings.theme);
-            }
-        }
-
-        // Reset settings to defaults
-        function resetSettings() {
-            gameSettings = {
-                difficulty: 2,
-                combatSpeed: 1.0,
-                enableSounds: true,
-                showGrid: true,
-                autoSave: true,
-                theme: 'default',
-                tileSize: 80,
-                zoomSpeed: 1.0
-            };
-            
-            // Update UI
-            loadSettingsUI();
-            
-            // Update main page
-            document.getElementById('difficultySelect').value = '2';
-            updateDifficultyStats();
-        }
-
-        // Event listeners for sliders
+        // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             // Difficulty selector
             const difficultySelect = document.getElementById('difficultySelect');
@@ -622,38 +375,6 @@
                 updateDifficultyStats();
             }
             
-            // Combat speed slider
-            const combatSpeedSlider = document.getElementById('combatSpeed');
-            if (combatSpeedSlider) {
-                combatSpeedSlider.addEventListener('input', function() {
-                    const value = parseFloat(this.value);
-                    document.getElementById('combatSpeedValue').textContent = 
-                        value === 1.0 ? 'Normal' : 
-                        value < 1.0 ? 'Slow' : 'Fast';
-                });
-            }
-            
-            // Tile size slider
-            const tileSizeSlider = document.getElementById('tileSize');
-            if (tileSizeSlider) {
-                tileSizeSlider.addEventListener('input', function() {
-                    const value = parseInt(this.value);
-                    document.getElementById('tileSizeValue').textContent = 
-                        `Normal (${value}px)`;
-                });
-            }
-            
-            // Zoom speed slider
-            const zoomSpeedSlider = document.getElementById('zoomSpeed');
-            if (zoomSpeedSlider) {
-                zoomSpeedSlider.addEventListener('input', function() {
-                    const value = parseFloat(this.value);
-                    document.getElementById('zoomSpeedValue').textContent = 
-                        value === 1.0 ? 'Normal' : 
-                        value < 1.0 ? 'Slow' : 'Fast';
-                });
-            }
-            
             // Load saved player name
             const savedName = localStorage.getItem('dominationPlayerName');
             if (savedName) {
@@ -662,34 +383,13 @@
             
             // Close modals when clicking outside
             window.onclick = function(event) {
-                const howToPlayModal = document.getElementById('howToPlayModal');
-                const settingsModal = document.getElementById('settingsModal');
-                
-                if (event.target === howToPlayModal) {
-                    closeHowToPlay();
-                }
-                if (event.target === settingsModal) {
-                    closeSettings();
-                }
-            };
-            
-            // Add keyboard shortcuts
-            document.addEventListener('keydown', function(event) {
-                // Escape closes modals
-                if (event.key === 'Escape') {
-                    closeHowToPlay();
-                    closeSettings();
-                }
-                
-                // Number keys 1-3 select game modes
-                if (event.key >= '1' && event.key <= '3' && !event.target.matches('input, select, textarea')) {
-                    const modes = ['domination', 'bots', '1v1'];
-                    const modeIndex = parseInt(event.key) - 1;
-                    if (modeIndex >= 0 && modeIndex < 3) {
-                        startGame(modes[modeIndex]);
+                const modals = document.querySelectorAll('.modal');
+                modals.forEach(modal => {
+                    if (event.target === modal) {
+                        modal.style.display = 'none';
                     }
-                }
-            });
+                });
+            };
         });
     </script>
 </body>
