@@ -1023,24 +1023,25 @@ function isAdjacentHex(tileId1, tileId2) {
     const [r1, c1] = tileId1.split('-').map(Number);
     const [r2, c2] = tileId2.split('-').map(Number);
 
-    const evenRow = r1 % 2 === 0;
+    const oddRow = r1 % 2 === 1;
 
-    const neighbors = evenRow
+    const directions = oddRow
         ? [
             [0, -1], [0, 1],      // left, right
-            [-1, -1], [-1, 0],    // up-left, up-right
-            [1, -1], [1, 0],      // down-left, down-right
+            [-1, 0], [-1, 1],     // up-left, up-right
+            [1, 0], [1, 1],       // down-left, down-right
         ]
         : [
             [0, -1], [0, 1],
-            [-1, 0], [-1, 1],
-            [1, 0], [1, 1],
+            [-1, -1], [-1, 0],
+            [1, -1], [1, 0],
         ];
 
-    return neighbors.some(
+    return directions.some(
         ([dr, dc]) => r1 + dr === r2 && c1 + dc === c2
     );
 }
+
 
 // Get adjacent hexagon tiles
 function getAdjacentHexTiles(tileId) {
