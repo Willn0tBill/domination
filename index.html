@@ -6,227 +6,309 @@
     <title>Domination - Main Menu</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
-        /* Inline styles for reliability */
-        body.menu-page {
-            background: linear-gradient(135deg, #0a1520 0%, #1a2a3a 100%);
-            color: #f0f0f0;
+        /* Additional styles for proper scrolling */
+        html, body {
+            height: 100%;
+            overflow-y: auto;
+        }
+        
+        .menu-page {
             min-height: 100vh;
-            margin: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow-y: auto;
+        }
+        
+        .container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
         
         .menu-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
+            flex: 1;
+            overflow-y: auto;
         }
         
-        .menu-header {
-            text-align: center;
-            padding: 20px;
-            background: rgba(0, 20, 40, 0.9);
-            border-radius: 15px;
-            margin-bottom: 30px;
-            border: 3px solid #3a7bd5;
+        /* Studio credit styling */
+        .studio-credit {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
         }
         
-        .menu-header h1 {
-            font-size: 3rem;
-            margin: 10px 0;
-            color: #00d2ff;
-            text-shadow: 0 0 10px rgba(0, 210, 255, 0.5);
-        }
-        
-        .subtitle {
-            font-size: 1.2rem;
-            color: #a0c8ff;
-            margin-bottom: 20px;
-        }
-        
-        .difficulty-selector {
-            display: inline-block;
-            background: rgba(0, 30, 60, 0.7);
-            padding: 10px 20px;
-            border-radius: 8px;
-            border: 1px solid #3a7bd5;
-        }
-        
-        .difficulty-selector select {
-            background: rgba(0, 10, 20, 0.9);
-            color: white;
-            border: 1px solid #00d2ff;
-            padding: 8px 15px;
-            border-radius: 4px;
-            font-size: 1rem;
-            margin-left: 10px;
-        }
-        
-        .mode-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin: 30px 0;
-        }
-        
-        .mode-card {
-            background: rgba(0, 20, 40, 0.85);
-            border-radius: 15px;
-            padding: 25px;
-            border: 2px solid #3a7bd5;
-            transition: transform 0.3s;
-        }
-        
-        .mode-card:hover {
-            transform: translateY(-5px);
-            border-color: #00d2ff;
-        }
-        
-        .mode-card h3 {
-            color: #00d2ff;
-            margin: 15px 0;
-            font-size: 1.5rem;
-        }
-        
-        .mode-description {
-            color: #a0c8ff;
-            line-height: 1.6;
-            margin-bottom: 20px;
-        }
-        
-        .play-btn {
-            width: 100%;
-            padding: 15px;
-            background: linear-gradient(90deg, #3a7bd5, #00d2ff);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .play-btn:hover {
-            background: linear-gradient(90deg, #00d2ff, #3a7bd5);
-            transform: scale(1.05);
-        }
-        
-        .action-buttons {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            margin-top: 40px;
-        }
-        
-        .action-btn {
-            padding: 15px 30px;
-            background: linear-gradient(90deg, #8e2de2, #4a00e0);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 1.1rem;
-            cursor: pointer;
+        .studio-link {
             display: flex;
             align-items: center;
             gap: 10px;
-        }
-        
-        footer {
-            text-align: center;
-            margin-top: 50px;
-            padding: 20px;
-            color: #88aacc;
+            color: #00d2ff;
+            text-decoration: none;
             font-size: 0.9rem;
-            border-top: 1px solid rgba(100, 150, 255, 0.2);
+            padding: 8px 15px;
+            background: rgba(0, 20, 40, 0.8);
+            border-radius: 8px;
+            border: 1px solid #3a7bd5;
+            transition: all 0.3s ease;
         }
         
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            z-index: 1000;
+        .studio-link:hover {
+            background: rgba(0, 30, 60, 0.9);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 210, 255, 0.3);
+            color: #ffd700;
         }
         
-        .modal-content {
-            background: linear-gradient(135deg, #0c1a2d 0%, #1a3a5f 100%);
-            margin: 50px auto;
-            padding: 30px;
-            border-radius: 15px;
-            border: 2px solid #3a7bd5;
-            max-width: 600px;
+        /* Ensure content doesn't get hidden under fixed header */
+        .menu-header {
             position: relative;
+            margin-top: 60px; /* Make space for studio credit */
         }
         
-        .close-modal {
-            position: absolute;
-            top: 20px;
-            right: 25px;
-            font-size: 28px;
-            color: #ff416c;
-            cursor: pointer;
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 20, 40, 0.5);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #3a7bd5;
+            border-radius: 5px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00d2ff;
+        }
+        
+        /* Make sure everything is visible */
+        .menu-container {
+            padding-bottom: 40px;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .studio-credit {
+                position: relative;
+                top: auto;
+                left: auto;
+                text-align: center;
+                margin: 10px auto;
+                width: fit-content;
+            }
+            
+            .menu-header {
+                margin-top: 20px;
+            }
+            
+            .studio-link {
+                font-size: 0.8rem;
+                padding: 6px 12px;
+            }
         }
     </style>
 </head>
 <body class="menu-page">
-    <div class="menu-container">
+    <div class="container">
+        <!-- Studio Credit at top -->
+        <div class="studio-credit">
+            <a href="https://willn0tbill.github.io/WtvStudios/index.html" target="_blank" class="studio-link">
+                <i class="fas fa-gamepad"></i> A Whatever Studios Production
+            </a>
+        </div>
+        
         <header class="menu-header">
-            <h1><i class="fas fa-crown"></i> DOMINATION</h1>
-            <p class="subtitle">Territory Control Strategy Game - 2026 Whatever Studios</p>
-            <div class="difficulty-selector">
-                <span>Difficulty:</span>
-                <select id="difficultySelect">
-                    <option value="1">Easy</option>
-                    <option value="2" selected>Normal</option>
-                    <option value="3">Hard</option>
-                    <option value="4">Expert</option>
-                    <option value="5">Insane</option>
-                </select>
+            <div class="main-title">
+                <h1><i class="fas fa-crown"></i> DOMINATION</h1>
+                <p class="subtitle">Territory Control Strategy Game</p>
+                <div class="difficulty-selector">
+                    <span>Difficulty:</span>
+                    <select id="difficultySelect">
+                        <option value="1">Easy</option>
+                        <option value="2" selected>Normal</option>
+                        <option value="3">Hard</option>
+                        <option value="4">Expert</option>
+                        <option value="5">Insane</option>
+                    </select>
+                </div>
             </div>
         </header>
         
-        <div class="mode-cards">
-            <div class="mode-card">
-                <h3><i class="fas fa-globe-americas"></i> DOMINATION</h3>
-                <p class="mode-description">Endless survival mode! Map expands 25x25 every 5 minutes. Survive infinite waves of bots as they get stronger each wave.</p>
-                <button class="play-btn" onclick="startGame('domination')">
-                    <i class="fas fa-play"></i> Play Domination
-                </button>
+        <div class="menu-container">
+            <div class="player-setup">
+                <div class="setup-card">
+                    <h2><i class="fas fa-user-astronaut"></i> Commander Profile</h2>
+                    <div class="input-group">
+                        <label for="playerName">Your Name:</label>
+                        <input type="text" id="playerName" placeholder="Enter commander name" value="Commander">
+                        <p class="hint">This name will appear on the leaderboards</p>
+                    </div>
+                    
+                    <div class="player-stats-preview">
+                        <h3><i class="fas fa-chart-bar"></i> Difficulty Stats</h3>
+                        <div class="stats-grid">
+                            <div class="stat">
+                                <span class="stat-label">Starting Troops</span>
+                                <span class="stat-value" id="startTroops">30</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Starting Tiles</span>
+                                <span class="stat-value" id="startTiles">3</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Troop Rate</span>
+                                <span class="stat-value" id="troopRate">1.0/sec</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Bot Spawn Rate</span>
+                                <span class="stat-value" id="botRate">60s</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="game-settings">
+                        <h3><i class="fas fa-sliders-h"></i> Game Settings</h3>
+                        <div class="setting-option">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="soundToggle" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <span>Enable Sound Effects</span>
+                        </div>
+                        <div class="setting-option">
+                            <label>Color Theme:</label>
+                            <select id="colorTheme">
+                                <option value="default">Default (Blue/Red)</option>
+                                <option value="green">Green/Orange</option>
+                                <option value="purple">Purple/Yellow</option>
+                                <option value="monochrome">Monochrome</option>
+                            </select>
+                        </div>
+                        <div class="setting-option">
+                            <label>Tile Size:</label>
+                            <select id="tileSize">
+                                <option value="medium" selected>Medium</option>
+                                <option value="small">Small</option>
+                                <option value="large">Large</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
             </div>
             
-            <div class="mode-card">
-                <h3><i class="fas fa-robot"></i> BOTS BATTLE</h3>
-                <p class="mode-description">Battle against multiple AI commanders. Last commander standing wins!</p>
-                <button class="play-btn" onclick="startGame('bots')">
-                    <i class="fas fa-play"></i> Play Bots Battle
-                </button>
+            <div class="game-modes">
+                <h2 class="section-title"><i class="fas fa-flag"></i> Battlefield Selection</h2>
+                <div class="mode-cards">
+                    <div class="mode-card" data-mode="domination">
+                        <div class="mode-icon domination">
+                            <i class="fas fa-globe-americas"></i>
+                        </div>
+                        <h3>DOMINATION</h3>
+                        <p class="mode-description">The ultimate endurance challenge! Survive against infinite waves of bots as the map grows 25x25 every 5 minutes. Conquer as much territory as you can!</p>
+                        <div class="mode-details">
+                            <div class="detail"><i class="fas fa-expand-arrows-alt"></i> Expanding 25x25 Map</div>
+                            <div class="detail"><i class="fas fa-robot"></i> Infinite Bot Waves</div>
+                            <div class="detail"><i class="fas fa-trophy"></i> Global Leaderboard</div>
+                        </div>
+                        <button class="play-btn domination" onclick="startGame('domination')">
+                            <i class="fas fa-play-circle"></i> Start Domination
+                        </button>
+                    </div>
+                    
+                    <div class="mode-card" data-mode="bots">
+                        <div class="mode-icon bots">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <h3>BOTS BATTLE</h3>
+                        <p class="mode-description">Battle against multiple AI commanders in a fixed arena. Eliminate all opponents to claim victory in this intense skirmish.</p>
+                        <div class="mode-details">
+                            <div class="detail"><i class="fas fa-users"></i> Multiple Opponents</div>
+                            <div class="detail"><i class="fas fa-crosshairs"></i> Last Commander Standing</div>
+                            <div class="detail"><i class="fas fa-bolt"></i> Fast-Paced Action</div>
+                        </div>
+                        <button class="play-btn bots" onclick="startGame('bots')">
+                            <i class="fas fa-play-circle"></i> Start Battle
+                        </button>
+                    </div>
+                    
+                    <div class="mode-card" data-mode="1v1">
+                        <div class="mode-icon duel">
+                            <i class="fas fa-crosshairs"></i>
+                        </div>
+                        <h3>1V1 DUEL</h3>
+                        <p class="mode-description">Challenge an elite AI commander in a tactical duel. Outmaneuver and outthink your opponent in this chess-like showdown.</p>
+                        <div class="mode-details">
+                            <div class="detail"><i class="fas fa-chess-king"></i> Elite AI Opponent</div>
+                            <div class="detail"><i class="fas fa-brain"></i> High-Stakes Strategy</div>
+                            <div class="detail"><i class="fas fa-award"></i> Ultimate Bragging Rights</div>
+                        </div>
+                        <button class="play-btn duel" onclick="startGame('1v1')">
+                            <i class="fas fa-play-circle"></i> Start Duel
+                        </button>
+                    </div>
+                </div>
             </div>
             
-            <div class="mode-card">
-                <h3><i class="fas fa-crosshairs"></i> 1V1 DUEL</h3>
-                <p class="mode-description">Face off against an elite AI commander in tactical 1v1 combat.</p>
-                <button class="play-btn" onclick="startGame('1v1')">
-                    <i class="fas fa-play"></i> Play 1v1 Duel
-                </button>
+            <div class="menu-actions">
+                <div class="action-buttons">
+                    <button class="action-btn leaderboard" onclick="viewLeaderboard()">
+                        <i class="fas fa-trophy"></i> Global Leaderboard
+                    </button>
+                    <button class="action-btn tutorial" onclick="showHowToPlay()">
+                        <i class="fas fa-graduation-cap"></i> How to Play
+                    </button>
+                </div>
+                
+                <div class="game-tips">
+                    <h3><i class="fas fa-lightbulb"></i> Pro Tips</h3>
+                    <ul>
+                        <li>Select your tile, then click adjacent tile to attack/move</li>
+                        <li>Use bottom slider to control troop deployment amount</li>
+                        <li>Expand early to increase your troop generation</li>
+                        <li>Higher difficulties give better score multipliers</li>
+                        <li>In Domination mode, map grows 25x25 every 5 minutes!</li>
+                    </ul>
+                </div>
             </div>
-        </div>
-        
-        <div class="action-buttons">
-            <button class="action-btn" onclick="viewLeaderboard()">
-                <i class="fas fa-trophy"></i> Leaderboard
-            </button>
-            <button class="action-btn" onclick="showHowToPlay()">
-                <i class="fas fa-graduation-cap"></i> How to Play
-            </button>
         </div>
         
         <footer>
-            <p>© 2026 Whatever Studios. All rights reserved.</p>
-            <p>Domination - Hexagon Territory Control Game</p>
+            <div class="footer-content">
+                <div class="footer-left">
+                    <h3><i class="fas fa-crown"></i> DOMINATION</h3>
+                    <p>Territory Control Strategy Game</p>
+                    <p class="copyright">© 2026 Whatever Studios. All rights reserved.</p>
+                </div>
+                
+                <div class="footer-center">
+                    <a href="https://willn0tbill.github.io/WtvStudios/index.html" target="_blank" class="studio-badge">
+                        <i class="fas fa-gamepad"></i>
+                        <div>
+                            <span class="studio-name">Whatever Studios</span>
+                            <span class="studio-tagline">2026 Edition</span>
+                        </div>
+                    </a>
+                </div>
+                
+                <div class="footer-right">
+                    <h4>Game Features</h4>
+                    <ul>
+                        <li>Hexagon Grid System</li>
+                        <li>Expanding Domination Mode</li>
+                        <li>Global Leaderboard</li>
+                        <li>Progressive Difficulty</li>
+                        <li>Mobile Friendly</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>Created by Whatever Studios | Hexagon Territory Control Game</p>
+            </div>
         </footer>
     </div>
 
@@ -234,60 +316,240 @@
     <div class="modal" id="howToPlayModal">
         <div class="modal-content">
             <span class="close-modal" onclick="closeHowToPlay()">&times;</span>
-            <h2><i class="fas fa-graduation-cap"></i> How to Play</h2>
-            <div style="padding: 20px;">
-                <h3>Basic Controls:</h3>
-                <p>1. Click your tile to select it</p>
-                <p>2. Click adjacent enemy tile to attack</p>
-                <p>3. Click adjacent friendly tile to move troops</p>
-                <p>4. Use slider to choose troop deployment %</p>
-                
-                <h3>Game Modes:</h3>
-                <p><strong>Domination:</strong> Map grows 25x25 every 5 minutes</p>
-                <p><strong>Bots Battle:</strong> Eliminate all AI opponents</p>
-                <p><strong>1v1 Duel:</strong> Defeat the elite AI</p>
+            <div class="modal-header">
+                <h2><i class="fas fa-graduation-cap"></i> How to Play Domination</h2>
+                <p class="modal-subtitle">Master the battlefield with these essential strategies</p>
+            </div>
+            
+            <div class="modal-body">
+                <div class="guide-section">
+                    <div class="guide-card">
+                        <div class="guide-icon">
+                            <i class="fas fa-mouse-pointer"></i>
+                        </div>
+                        <h3>Basic Controls</h3>
+                        <ul>
+                            <li><strong>Select Tile:</strong> Click on any tile you control</li>
+                            <li><strong>Move/Attack:</strong> Select your tile, then click adjacent tile</li>
+                            <li><strong>Troop Slider:</strong> Use bottom slider to choose deployment amount</li>
+                            <li><strong>Zoom:</strong> Use +/- buttons (Domination mode only)</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="guide-card">
+                        <div class="guide-icon">
+                            <i class="fas fa-balance-scale"></i>
+                        </div>
+                        <h3>Combat System</h3>
+                        <ul>
+                            <li><strong>Difference-Based:</strong> Attacker needs more troops than defender</li>
+                            <li><strong>Shield System:</strong> Tiles have defense bonuses</li>
+                            <li><strong>Custom Deployment:</strong> Choose exact troop amount</li>
+                            <li><strong>Max Troops:</strong> 100 troops per tile</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="guide-card">
+                        <div class="guide-icon">
+                            <i class="fas fa-chess-board"></i>
+                        </div>
+                        <h3>Tile Types</h3>
+                        <ul>
+                            <li><span class="tile-sample player"></span> <strong>Blue:</strong> Your territory</li>
+                            <li><span class="tile-sample bot"></span> <strong>Red:</strong> Enemy territory</li>
+                            <li><span class="tile-sample neutral"></span> <strong>Gray:</strong> Neutral land</li>
+                            <li><span class="tile-sample selected"></span> <strong>Gold Border:</strong> Selected tile</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="guide-card">
+                        <div class="guide-icon">
+                            <i class="fas fa-flag"></i>
+                        </div>
+                        <h3>Game Modes</h3>
+                        <p><strong>Domination:</strong> Infinite survival, expanding map 25x25 every 5 minutes</p>
+                        <p><strong>Bots Battle:</strong> Eliminate all AI opponents in fixed arena</p>
+                        <p><strong>1v1 Duel:</strong> Defeat the elite AI commander</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Simple menu functions
-        function startGame(mode) {
-            // Save settings
-            const difficulty = document.getElementById('difficultySelect').value;
-            localStorage.setItem('dominationGameMode', mode);
-            localStorage.setItem('dominationDifficulty', difficulty);
+        // Global settings
+        let gameSettings = {
+            difficulty: 2,
+            enableSounds: true,
+            theme: 'default',
+            tileSize: 'medium'
+        };
+
+        // Extreme difficulty settings
+        const difficultySettings = {
+            1: { // Easy
+                startingTroops: 100,
+                startingTiles: 8,
+                troopRate: 3.0,
+                botSpawnRate: 120,
+                botStrength: 0.3,
+                botIntelligence: 0.3,
+                shieldBonus: 0,
+                scoreMultiplier: 0.5,
+                botSpawnCount: 2,
+                waveGrowth: 1.1
+            },
+            2: { // Normal
+                startingTroops: 50,
+                startingTiles: 4,
+                troopRate: 1.5,
+                botSpawnRate: 90,
+                botStrength: 0.8,
+                botIntelligence: 0.8,
+                shieldBonus: 1,
+                scoreMultiplier: 1.0,
+                botSpawnCount: 3,
+                waveGrowth: 1.2
+            },
+            3: { // Hard
+                startingTroops: 25,
+                startingTiles: 2,
+                troopRate: 1.0,
+                botSpawnRate: 60,
+                botStrength: 1.5,
+                botIntelligence: 1.5,
+                shieldBonus: 2,
+                scoreMultiplier: 2.0,
+                botSpawnCount: 4,
+                waveGrowth: 1.3
+            },
+            4: { // Expert
+                startingTroops: 10,
+                startingTiles: 1,
+                troopRate: 0.5,
+                botSpawnRate: 30,
+                botStrength: 2.5,
+                botIntelligence: 2.5,
+                shieldBonus: 4,
+                scoreMultiplier: 5.0,
+                botSpawnCount: 5,
+                waveGrowth: 1.5
+            },
+            5: { // Insane
+                startingTroops: 5,
+                startingTiles: 1,
+                troopRate: 0.2,
+                botSpawnRate: 15,
+                botStrength: 4.0,
+                botIntelligence: 4.0,
+                shieldBonus: 8,
+                scoreMultiplier: 10.0,
+                botSpawnCount: 6,
+                waveGrowth: 2.0
+            }
+        };
+
+        // Set player name in localStorage
+        function setPlayerName() {
+            const playerName = document.getElementById('playerName').value || 'Commander';
+            localStorage.setItem('dominationPlayerName', playerName);
+            return playerName;
+        }
+
+        // Update stats based on difficulty
+        function updateDifficultyStats() {
+            const difficulty = parseInt(document.getElementById('difficultySelect').value);
+            gameSettings.difficulty = difficulty;
             
-            // Redirect to game
+            const settings = difficultySettings[difficulty];
+            
+            // Update displayed stats
+            document.getElementById('startTroops').textContent = settings.startingTroops;
+            document.getElementById('startTiles').textContent = settings.startingTiles;
+            document.getElementById('troopRate').textContent = settings.troopRate.toFixed(1) + '/sec';
+            document.getElementById('botRate').textContent = settings.botSpawnRate + 's';
+            
+            // Save difficulty to localStorage
+            localStorage.setItem('dominationDifficulty', difficulty);
+        }
+
+        // Start game with selected mode
+        function startGame(mode) {
+            const playerName = setPlayerName();
+            localStorage.setItem('dominationGameMode', mode);
+            localStorage.setItem('dominationDifficulty', gameSettings.difficulty);
+            
+            // Save other settings
+            localStorage.setItem('dominationSoundEnabled', document.getElementById('soundToggle').checked);
+            localStorage.setItem('dominationColorTheme', document.getElementById('colorTheme').value);
+            localStorage.setItem('dominationTileSize', document.getElementById('tileSize').value);
+            
+            // Load the game page
             window.location.href = 'game.html';
         }
-        
+
+        // View leaderboard
         function viewLeaderboard() {
             window.location.href = 'leaderboard.html';
         }
-        
+
+        // Show how to play modal
         function showHowToPlay() {
             document.getElementById('howToPlayModal').style.display = 'block';
         }
-        
+
+        // Close how to play modal
         function closeHowToPlay() {
             document.getElementById('howToPlayModal').style.display = 'none';
         }
-        
-        // Close modal when clicking outside
-        window.onclick = function(event) {
-            const modal = document.getElementById('howToPlayModal');
-            if (event.target === modal) {
-                modal.style.display = 'none';
-            }
-        };
-        
-        // Load saved difficulty
+
+        // Initialize
         document.addEventListener('DOMContentLoaded', function() {
-            const savedDifficulty = localStorage.getItem('dominationDifficulty');
-            if (savedDifficulty) {
-                document.getElementById('difficultySelect').value = savedDifficulty;
+            // Difficulty selector
+            const difficultySelect = document.getElementById('difficultySelect');
+            if (difficultySelect) {
+                difficultySelect.addEventListener('change', updateDifficultyStats);
+                
+                // Load saved difficulty
+                const savedDifficulty = localStorage.getItem('dominationDifficulty');
+                if (savedDifficulty) {
+                    difficultySelect.value = savedDifficulty;
+                    gameSettings.difficulty = parseInt(savedDifficulty);
+                }
+                
+                updateDifficultyStats();
             }
+            
+            // Load saved settings
+            const savedName = localStorage.getItem('dominationPlayerName');
+            if (savedName) {
+                document.getElementById('playerName').value = savedName;
+            }
+            
+            const savedSound = localStorage.getItem('dominationSoundEnabled');
+            if (savedSound !== null) {
+                document.getElementById('soundToggle').checked = savedSound === 'true';
+            }
+            
+            const savedTheme = localStorage.getItem('dominationColorTheme');
+            if (savedTheme) {
+                document.getElementById('colorTheme').value = savedTheme;
+            }
+            
+            const savedTileSize = localStorage.getItem('dominationTileSize');
+            if (savedTileSize) {
+                document.getElementById('tileSize').value = savedTileSize;
+            }
+            
+            // Close modals when clicking outside
+            window.onclick = function(event) {
+                const modals = document.querySelectorAll('.modal');
+                modals.forEach(modal => {
+                    if (event.target === modal) {
+                        modal.style.display = 'none';
+                    }
+                });
+            };
         });
     </script>
 </body>
