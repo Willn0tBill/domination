@@ -1020,26 +1020,26 @@ function endGame(isVictory) {
 
 // Check if hexagon tiles are adjacent
 function isAdjacentHex(tileId1, tileId2) {
-    const [row1, col1] = tileId1.split('-').map(Number);
-    const [row2, col2] = tileId2.split('-').map(Number);
-    
-    const rowDiff = Math.abs(row1 - row2);
-    const colDiff = Math.abs(col1 - col2);
-    
-    // For hex grid:
-    // Same row, adjacent columns
-    if (rowDiff === 0 && colDiff === 1) return true;
-    
-    // Different rows (hex offset)
-    if (rowDiff === 1) {
-        if (row1 % 2 === 0) { // Even row
-            return (col2 === col1) || (col2 === col1 + 1);
-        } else { // Odd row
-            return (col2 === col1) || (col2 === col1 - 1);
-        }
-    }
-    
-    return false;
+    const [r1, c1] = tileId1.split('-').map(Number);
+    const [r2, c2] = tileId2.split('-').map(Number);
+
+    const evenRow = r1 % 2 === 0;
+
+    const neighbors = evenRow
+        ? [
+            [0, -1], [0, 1],      // left, right
+            [-1, -1], [-1, 0],    // up-left, up-right
+            [1, -1], [1, 0],      // down-left, down-right
+        ]
+        : [
+            [0, -1], [0, 1],
+            [-1, 0], [-1, 1],
+            [1, 0], [1, 1],
+        ];
+
+    return neighbors.some(
+        ([dr, dc]) => r1 + dr === r2 && c1 + dc === c2
+    );
 }
 
 // Get adjacent hexagon tiles
