@@ -3,198 +3,292 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Domination - Game</title>
+    <title>Domination - Main Menu</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Inline styles for reliability */
+        body.menu-page {
+            background: linear-gradient(135deg, #0a1520 0%, #1a2a3a 100%);
+            color: #f0f0f0;
+            min-height: 100vh;
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .menu-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .menu-header {
+            text-align: center;
+            padding: 20px;
+            background: rgba(0, 20, 40, 0.9);
+            border-radius: 15px;
+            margin-bottom: 30px;
+            border: 3px solid #3a7bd5;
+        }
+        
+        .menu-header h1 {
+            font-size: 3rem;
+            margin: 10px 0;
+            color: #00d2ff;
+            text-shadow: 0 0 10px rgba(0, 210, 255, 0.5);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            color: #a0c8ff;
+            margin-bottom: 20px;
+        }
+        
+        .difficulty-selector {
+            display: inline-block;
+            background: rgba(0, 30, 60, 0.7);
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: 1px solid #3a7bd5;
+        }
+        
+        .difficulty-selector select {
+            background: rgba(0, 10, 20, 0.9);
+            color: white;
+            border: 1px solid #00d2ff;
+            padding: 8px 15px;
+            border-radius: 4px;
+            font-size: 1rem;
+            margin-left: 10px;
+        }
+        
+        .mode-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .mode-card {
+            background: rgba(0, 20, 40, 0.85);
+            border-radius: 15px;
+            padding: 25px;
+            border: 2px solid #3a7bd5;
+            transition: transform 0.3s;
+        }
+        
+        .mode-card:hover {
+            transform: translateY(-5px);
+            border-color: #00d2ff;
+        }
+        
+        .mode-card h3 {
+            color: #00d2ff;
+            margin: 15px 0;
+            font-size: 1.5rem;
+        }
+        
+        .mode-description {
+            color: #a0c8ff;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        
+        .play-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(90deg, #3a7bd5, #00d2ff);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .play-btn:hover {
+            background: linear-gradient(90deg, #00d2ff, #3a7bd5);
+            transform: scale(1.05);
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 40px;
+        }
+        
+        .action-btn {
+            padding: 15px 30px;
+            background: linear-gradient(90deg, #8e2de2, #4a00e0);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 20px;
+            color: #88aacc;
+            font-size: 0.9rem;
+            border-top: 1px solid rgba(100, 150, 255, 0.2);
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: linear-gradient(135deg, #0c1a2d 0%, #1a3a5f 100%);
+            margin: 50px auto;
+            padding: 30px;
+            border-radius: 15px;
+            border: 2px solid #3a7bd5;
+            max-width: 600px;
+            position: relative;
+        }
+        
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 25px;
+            font-size: 28px;
+            color: #ff416c;
+            cursor: pointer;
+        }
+    </style>
 </head>
-<body class="game-page">
-    <div class="container">
-        <header class="game-header">
-            <div class="header-left">
-                <h1><i class="fas fa-crown"></i> DOMINATION</h1>
-                <p class="game-mode" id="gameModeDisplay">Loading...</p>
-            </div>
-            <div class="header-right">
-                <div class="wave-info" id="waveInfo" style="display: none;">
-                    <span>Wave: <strong id="currentWaveDisplay">1</strong></span>
-                    <span>Next: <strong id="nextWaveTimer">5:00</strong></span>
-                </div>
-                <button class="back-btn" onclick="goToMenu()">
-                    <i class="fas fa-home"></i> Main Menu
-                </button>
+<body class="menu-page">
+    <div class="menu-container">
+        <header class="menu-header">
+            <h1><i class="fas fa-crown"></i> DOMINATION</h1>
+            <p class="subtitle">Territory Control Strategy Game - 2026 Whatever Studios</p>
+            <div class="difficulty-selector">
+                <span>Difficulty:</span>
+                <select id="difficultySelect">
+                    <option value="1">Easy</option>
+                    <option value="2" selected>Normal</option>
+                    <option value="3">Hard</option>
+                    <option value="4">Expert</option>
+                    <option value="5">Insane</option>
+                </select>
             </div>
         </header>
         
-        <div class="game-area">
-            <div class="game-board-container">
-                <button class="side-panel-toggle" onclick="toggleSidePanel()">
-                    <i class="fas fa-chevron-left" id="panelToggleIcon"></i>
+        <div class="mode-cards">
+            <div class="mode-card">
+                <h3><i class="fas fa-globe-americas"></i> DOMINATION</h3>
+                <p class="mode-description">Endless survival mode! Map expands 25x25 every 5 minutes. Survive infinite waves of bots as they get stronger each wave.</p>
+                <button class="play-btn" onclick="startGame('domination')">
+                    <i class="fas fa-play"></i> Play Domination
                 </button>
-                
-                <div class="zoom-controls" id="zoomControls" style="display: none;">
-                    <button class="zoom-btn" onclick="zoomIn()">
-                        <i class="fas fa-plus"></i>
-                    </button>
-                    <button class="zoom-btn" onclick="zoomOut()">
-                        <i class="fas fa-minus"></i>
-                    </button>
-                    <button class="zoom-btn" onclick="resetZoom()">
-                        <i class="fas fa-search"></i>
-                    </button>
-                </div>
-                
-                <div class="game-board-wrapper" id="gameBoardWrapper">
-                    <div class="game-status" id="gameStatus">
-                        Game Loading...
-                    </div>
-                    
-                    <div class="tiles-container" id="tilesContainer">
-                        <!-- Tiles will be generated by JavaScript -->
-                    </div>
-                </div>
             </div>
             
-            <div class="side-panel" id="sidePanel">
-                <div class="panel-section">
-                    <h2><i class="fas fa-user"></i> Player: <span id="currentPlayerName">Commander</span></h2>
-                </div>
-                
-                <div class="panel-section">
-                    <h3><i class="fas fa-chart-line"></i> Game Stats</h3>
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-label">Tiles</div>
-                            <div class="stat-value" id="playerTiles">1</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Score</div>
-                            <div class="stat-value" id="currentScore">0</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Troops</div>
-                            <div class="stat-value" id="totalTroops">0</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Bots</div>
-                            <div class="stat-value" id="botCount">3</div>
-                        </div>
-                    </div>
-                    
-                    <div class="status-bar">
-                        <div class="status-item">
-                            <div class="status-label">Time</div>
-                            <div class="status-value" id="gameTime">0:00</div>
-                        </div>
-                        <div class="status-item">
-                            <div class="status-label">Difficulty</div>
-                            <div class="status-value" id="difficultyLevel">Normal</div>
-                            <div class="difficulty-indicator" id="difficultyIndicator"></div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="panel-section">
-                    <h3><i class="fas fa-info-circle"></i> Game Info</h3>
-                    <div class="info-item">
-                        <span>Mode:</span>
-                        <span id="modeInfo">Domination</span>
-                    </div>
-                    <div class="info-item">
-                        <span>Troop Rate:</span>
-                        <span id="troopRate">1.0/sec</span>
-                    </div>
-                    <div class="info-item">
-                        <span>Map Size:</span>
-                        <span id="mapSize">8x8</span>
-                    </div>
-                    <div class="info-item" id="waveInfoPanel" style="display: none;">
-                        <span>Wave:</span>
-                        <span id="currentWave">1</span>
-                    </div>
-                </div>
-                
-                <div class="panel-section">
-                    <h3><i class="fas fa-gamepad"></i> Game Controls</h3>
-                    <div class="game-controls">
-                        <button class="control-btn" id="pauseBtn" onclick="pauseGame()">
-                            <i class="fas fa-pause"></i> Pause
-                        </button>
-                        <button class="control-btn secondary" onclick="restartGame()">
-                            <i class="fas fa-redo"></i> Restart
-                        </button>
-                    </div>
-                </div>
+            <div class="mode-card">
+                <h3><i class="fas fa-robot"></i> BOTS BATTLE</h3>
+                <p class="mode-description">Battle against multiple AI commanders. Last commander standing wins!</p>
+                <button class="play-btn" onclick="startGame('bots')">
+                    <i class="fas fa-play"></i> Play Bots Battle
+                </button>
+            </div>
+            
+            <div class="mode-card">
+                <h3><i class="fas fa-crosshairs"></i> 1V1 DUEL</h3>
+                <p class="mode-description">Face off against an elite AI commander in tactical 1v1 combat.</p>
+                <button class="play-btn" onclick="startGame('1v1')">
+                    <i class="fas fa-play"></i> Play 1v1 Duel
+                </button>
             </div>
         </div>
         
-        <!-- Bottom Troop Selector -->
-        <div class="bottom-troop-selector">
-            <div class="selector-container">
-                <div class="selector-info">
-                    <span>Troop Deployment: <strong id="selectedTroopsDisplay">50%</strong> of selected tile</span>
-                </div>
-                <div class="troop-slider-container">
-                    <input type="range" id="troopSlider" min="10" max="100" value="50" class="troop-slider">
-                    <div class="troop-value-display">
-                        <span id="currentTroops">50%</span>
-                    </div>
-                    <div class="slider-labels">
-                        <span>10%</span>
-                        <span>100%</span>
-                    </div>
-                </div>
-                <div class="selector-info">
-                    <span>Selected: <strong id="selectedTileInfo">None</strong></span>
-                </div>
-            </div>
+        <div class="action-buttons">
+            <button class="action-btn" onclick="viewLeaderboard()">
+                <i class="fas fa-trophy"></i> Leaderboard
+            </button>
+            <button class="action-btn" onclick="showHowToPlay()">
+                <i class="fas fa-graduation-cap"></i> How to Play
+            </button>
         </div>
+        
+        <footer>
+            <p>© 2026 Whatever Studios. All rights reserved.</p>
+            <p>Domination - Hexagon Territory Control Game</p>
+        </footer>
     </div>
 
-    <!-- Game Over Modal -->
-    <div class="modal" id="gameOverModal">
+    <!-- How to Play Modal -->
+    <div class="modal" id="howToPlayModal">
         <div class="modal-content">
-            <h2 id="gameOverTitle">Game Over!</h2>
-            <p id="gameOverMessage"></p>
-            <div class="result-grid">
-                <div class="result-item">
-                    <div class="result-label">Final Score</div>
-                    <div class="result-value" id="finalScore">0</div>
-                </div>
-                <div class="result-item">
-                    <div class="result-label">Time Survived</div>
-                    <div class="result-value" id="finalTime">0:00</div>
-                </div>
-                <div class="result-item">
-                    <div class="result-label">Tiles Conquered</div>
-                    <div class="result-value" id="finalTiles">0</div>
-                </div>
-                <div class="result-item">
-                    <div class="result-label">Bots Defeated</div>
-                    <div class="result-value" id="finalBots">0</div>
-                </div>
-                <div class="result-item" id="finalWavesContainer" style="display: none;">
-                    <div class="result-label">Waves Survived</div>
-                    <div class="result-value" id="finalWaves">0</div>
-                </div>
-                <div class="result-item">
-                    <div class="result-label">Difficulty</div>
-                    <div class="result-value" id="finalDifficulty">Normal</div>
-                </div>
-            </div>
-            <div class="modal-buttons">
-                <button class="modal-btn primary" onclick="restartGame()">
-                    <i class="fas fa-redo"></i> Play Again
-                </button>
-                <button class="modal-btn" onclick="goToMenu()">
-                    <i class="fas fa-home"></i> Main Menu
-                </button>
-                <button class="modal-btn" onclick="viewLeaderboard()">
-                    <i class="fas fa-trophy"></i> View Leaderboard
-                </button>
+            <span class="close-modal" onclick="closeHowToPlay()">&times;</span>
+            <h2><i class="fas fa-graduation-cap"></i> How to Play</h2>
+            <div style="padding: 20px;">
+                <h3>Basic Controls:</h3>
+                <p>1. Click your tile to select it</p>
+                <p>2. Click adjacent enemy tile to attack</p>
+                <p>3. Click adjacent friendly tile to move troops</p>
+                <p>4. Use slider to choose troop deployment %</p>
+                
+                <h3>Game Modes:</h3>
+                <p><strong>Domination:</strong> Map grows 25x25 every 5 minutes</p>
+                <p><strong>Bots Battle:</strong> Eliminate all AI opponents</p>
+                <p><strong>1v1 Duel:</strong> Defeat the elite AI</p>
             </div>
         </div>
     </div>
 
-    <script src="game.js"></script>
+    <script>
+        // Simple menu functions
+        function startGame(mode) {
+            // Save settings
+            const difficulty = document.getElementById('difficultySelect').value;
+            localStorage.setItem('dominationGameMode', mode);
+            localStorage.setItem('dominationDifficulty', difficulty);
+            
+            // Redirect to game
+            window.location.href = 'game.html';
+        }
+        
+        function viewLeaderboard() {
+            window.location.href = 'leaderboard.html';
+        }
+        
+        function showHowToPlay() {
+            document.getElementById('howToPlayModal').style.display = 'block';
+        }
+        
+        function closeHowToPlay() {
+            document.getElementById('howToPlayModal').style.display = 'none';
+        }
+        
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('howToPlayModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        };
+        
+        // Load saved difficulty
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedDifficulty = localStorage.getItem('dominationDifficulty');
+            if (savedDifficulty) {
+                document.getElementById('difficultySelect').value = savedDifficulty;
+            }
+        });
+    </script>
 </body>
 </html>
