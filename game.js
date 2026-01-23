@@ -1172,4 +1172,186 @@ function updateUI() {
         totalTroopsElement.textContent = totalPlayerTroops();
     }
     
-    if (gameTime
+    if (gameTimeElement) {
+        gameTimeElement.textContent = formatTime(gameState.gameTime);
+    }
+    
+    if (difficultyLevelElement) {
+        difficultyLevelElement.textContent = getDifficultyText(gameState.difficulty);
+    }
+    
+    // Update difficulty indicator
+    if (difficultyIndicator) {
+        difficultyIndicator.innerHTML = '';
+        for (let i = 0; i < 5; i++) {
+            const dot = document.createElement('div');
+            dot.className = 'diff-dot';
+            if (i < gameState.difficulty) {
+                dot.classList.add('active');
+            }
+            difficultyIndicator.appendChild(dot);
+        }
+    }
+}
+
+// Get mode name
+function getModeName(mode) {
+    switch(mode) {
+        case 'domination': return 'Domination';
+        case 'bots': return 'Bots Battle';
+        case '1v1': return '1v1 Duel';
+        default: return 'Unknown';
+    }
+}
+
+// ========== GAME CONTROLS ==========
+
+function goToMenu() {
+    if (gameState.gameLoop) {
+        clearInterval(gameState.gameLoop);
+        gameState.gameLoop = null;
+    }
+    window.location.href = 'index.html';
+}
+
+function viewLeaderboard() {
+    window.location.href = 'leaderboard.html';
+}
+
+function restartGame() {
+    document.getElementById('gameOverModal').style.display = 'none';
+    
+    // Reset game state
+    gameState = {
+        active: false,
+        mode: gameState.mode,
+        playerName: gameState.playerName,
+        playerTiles: [],
+        botTiles: [],
+        neutralTiles: [],
+        score: 0,
+        bots: [],
+        botCount: 0,
+        difficulty: gameState.difficulty,
+        selectedTile: null,
+        gameTime: 0,
+        lastUpdate: Date.now(),
+        gameLoop: null,
+        isPaused: false,
+        troopGenerationRate: 1,
+        maxTroopsPerTile: 100,
+        troops: {},
+        difficultyShields: gameState.difficultyShields,
+        deploymentPercentage: gameState.deploymentPercentage,
+        wave: 1,
+        waveTimer: 300,
+        mapSize: 8,
+        zoomLevel: 1,
+        baseGridSize: 8,
+        soundEnabled: gameState.soundEnabled,
+        theme: gameState.theme,
+        tileSize: gameState.tileSize
+    };
+    
+    // Restart
+    initGame();
+}
+
+function pauseGame() {
+    gameState.isPaused = !gameState.isPaused;
+    if (pauseBtn) {
+        pauseBtn.innerHTML = gameState.isPaused ? 
+            '<i class="fas fa-play"></i> Resume' : 
+            '<i class="fas fa-pause"></i> Pause';
+    }
+    
+    if (gameState.isPaused) {
+        gameStatus.textContent = "Game Paused";
+        gameStatus.className = "game-status";
+    } else {
+        gameStatus.textContent = "Game in Progress";
+        gameStatus.className = "game-status player-turn";
+    }
+}
+
+function toggleSidePanel() {
+    sidePanel.classList.toggle('active');
+    panelToggleIcon.classList.toggle('fa-chevron-left');
+    panelToggleIcon.classList.toggle('fa-chevron-right');
+}
+
+function zoomIn() {
+    if (gameState.zoomLevel < 2) {
+        gameState.zoomLevel += 0.1;
+        tilesContainer.style.transform = `scale(${gameState.zoomLevel})`;
+    }
+}
+
+function zoomOut() {
+    if (gameState.zoomLevel > 0.5) {
+        gameState.zoomLevel -= 0.1;
+        tilesContainer.style.transform = `scale(${gameState.zoomLevel})`;
+    }
+}
+
+function resetZoom() {
+    gameState.zoomLevel = 1;
+    tilesContainer.style.transform = `scale(${gameState.zoomLevel})`;
+}
+
+// Initialize
+window.onload = initGame;
+
+// Keyboard shortcuts
+document.addEventListener('keydown', function(event) {
+    if (!gameState.active) return;
+    
+    // ESC to cancel
+    if (event.key === 'Escape') {
+        if (gameState.selectedTile) {
+            deselectTile();
+        }
+    }
+    
+    // P to pause
+    if (event.key === 'p' || event.key === 'P') {
+        pauseGame();
+    }
+    
+    // R to restart
+    if (event.key === 'r' || event.key === 'R') {
+        if (confirm("Restart game?")) {
+            restartGame();
+        }
+    }
+    
+    // M for menu
+    if (event.key === 'm' || event.key === 'M') {
+        if (confirm("Return to main menu?")) {
+            goToMenu();
+        }
+    }
+    
+    // + to zoom in
+    if (event.key === '+' || event.key === '=') {
+        zoomIn();
+    }
+    
+    // - to zoom out
+    if (event.key === '-' || event.key === '_') {
+        zoomOut();
+    }
+    
+    // 0 to reset zoom
+    if (event.key === '0') {
+        resetZoom();
+    }
+});
+
+// Close modals
+window.onclick = function(event) {
+    const modal = document.getElementById('gameOverModal');
+    if (event.target === modal) {
+        modal.style.display = 'none';
+    }
+};
