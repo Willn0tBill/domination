@@ -9,159 +9,172 @@
 </head>
 <body class="game-page">
     <div class="container">
+        <!-- Minimal Header -->
         <header class="game-header">
             <div class="header-left">
                 <h1><i class="fas fa-crown"></i> DOMINATION</h1>
                 <p class="game-mode" id="gameModeDisplay">Loading...</p>
             </div>
             <div class="header-right">
-                <button class="back-btn" onclick="goToMenu()">
-                    <i class="fas fa-home"></i> Main Menu
+                <button class="control-btn small" onclick="toggleStats()" title="Toggle Stats">
+                    <i class="fas fa-chart-bar"></i> Stats
+                </button>
+                <button class="control-btn small" id="pauseBtn" onclick="pauseGame()" title="Pause Game">
+                    <i class="fas fa-pause"></i> Pause
+                </button>
+                <button class="control-btn small" onclick="goToMenu()" title="Main Menu">
+                    <i class="fas fa-home"></i> Menu
                 </button>
             </div>
         </header>
         
-        <div class="game-area">
-            <div class="left-panel">
-                <div class="player-info">
-                    <h2><i class="fas fa-user"></i> Player: <span id="currentPlayerName">Commander</span></h2>
-                    <div class="game-stats">
-                        <h3><i class="fas fa-chart-line"></i> Game Stats</h3>
-                        <div class="stats-grid">
-                            <div class="stat-card">
-                                <div class="stat-label">Tiles</div>
-                                <div class="stat-value" id="playerTiles">1</div>
-                            </div>
-                            <div class="stat-card">
-                                <div class="stat-label">Score</div>
-                                <div class="stat-value" id="currentScore">0</div>
-                            </div>
-                            <div class="stat-card">
-                                <div class="stat-label">Troops</div>
-                                <div class="stat-value" id="totalTroops">0</div>
-                            </div>
-                            <div class="stat-card">
-                                <div class="stat-label">Bots</div>
-                                <div class="stat-value" id="botCount">3</div>
-                            </div>
-                        </div>
-                        
-                        <div class="status-bar">
-                            <div class="status-item">
-                                <div class="status-label">Time</div>
-                                <div class="status-value" id="gameTime">0:00</div>
-                            </div>
-                            <div class="status-item">
-                                <div class="status-label">Difficulty</div>
-                                <div class="status-value" id="difficultyLevel">Normal</div>
-                                <div class="difficulty-indicator" id="difficultyIndicator"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="game-controls">
-                    <button class="control-btn" id="pauseBtn" onclick="pauseGame()">
-                        <i class="fas fa-pause"></i> Pause
-                    </button>
-                    <button class="control-btn" id="restartBtn" onclick="restartGame()">
-                        <i class="fas fa-redo"></i> Restart Game
-                    </button>
-                    <button class="control-btn secondary" onclick="goToMenu()">
-                        <i class="fas fa-home"></i> Main Menu
-                    </button>
-                    
-                    <div class="controls-row">
-                        <button class="control-btn small secondary" onclick="showInstructions()">
-                            <i class="fas fa-info-circle"></i> Help
-                        </button>
-                    </div>
-                </div>
-                
-                <div class="game-info">
-                    <h3><i class="fas fa-info-circle"></i> Game Info</h3>
-                    <div class="info-item">
-                        <span>Mode:</span>
-                        <span id="modeInfo">Domination</span>
-                    </div>
-                    <div class="info-item">
-                        <span>Bots Active:</span>
-                        <span id="botCountInfo">3</span>
-                    </div>
-                    <div class="info-item">
-                        <span>Troop Rate:</span>
-                        <span id="troopRate">0.5/sec</span>
-                    </div>
-                    <div class="info-item">
-                        <span>Status:</span>
-                        <span id="gameStatusText">Playing</span>
-                    </div>
-                </div>
-                
-                <div class="instructions">
-                    <h3><i class="fas fa-lightbulb"></i> How to Play</h3>
-                    <ul>
-                        <li>Click your tile to select it (glows gold)</li>
-                        <li>Click adjacent tile to move/attack</li>
-                        <li>NEW: Use bottom slider to choose troop amount</li>
-                        <li>NEW: Difference-based combat system</li>
-                        <li>Tiles generate troops over time</li>
-                        <li>Control more tiles = more troop generation</li>
-                        <li>In <span class="keybind">Domination</span>: Real-time, bots spawn continuously</li>
-                        <li>In <span class="keybind">Bots Battle</span>: Defeat all bots</li>
-                        <li>In <span class="keybind">1v1</span>: Defeat the elite bot</li>
-                    </ul>
-                </div>
+        <!-- Game Board Container -->
+        <div class="game-board-container">
+            <div class="game-status" id="gameStatus">
+                Game Loading...
             </div>
             
-            <div class="game-board">
-                <div class="game-status" id="gameStatus">
-                    Game Loading...
-                </div>
-                
+            <!-- Zoom Controls -->
+            <div class="zoom-controls">
+                <button class="zoom-btn" onclick="zoomOut()" title="Zoom Out">
+                    <i class="fas fa-search-minus"></i>
+                </button>
+                <span class="zoom-level" id="zoomLevel">100%</span>
+                <button class="zoom-btn" onclick="zoomIn()" title="Zoom In">
+                    <i class="fas fa-search-plus"></i>
+                </button>
+                <button class="zoom-btn" onclick="resetView()" title="Reset View">
+                    <i class="fas fa-expand-alt"></i>
+                </button>
+            </div>
+            
+            <!-- Map Container for Domination Mode -->
+            <div class="map-container" id="mapContainer">
                 <div class="tiles-container" id="tilesContainer">
                     <!-- Tiles will be generated by JavaScript -->
                 </div>
-                
-                <div class="game-log">
-                    <h3><i class="fas fa-scroll"></i> Game Log</h3>
-                    <div class="log-container" id="gameLog">
-                        <div class="log-entry">Game started!</div>
+            </div>
+            
+            <!-- Mini Stats Overlay -->
+            <div class="mini-stats" id="miniStats">
+                <div class="mini-stat">
+                    <span class="mini-label">Tiles:</span>
+                    <span class="mini-value" id="miniTiles">1</span>
+                </div>
+                <div class="mini-stat">
+                    <span class="mini-label">Score:</span>
+                    <span class="mini-value" id="miniScore">0</span>
+                </div>
+                <div class="mini-stat">
+                    <span class="mini-label">Time:</span>
+                    <span class="mini-value" id="miniTime">0:00</span>
+                </div>
+                <div class="mini-stat">
+                    <span class="mini-label">Wave:</span>
+                    <span class="mini-value" id="miniWave">1</span>
+                </div>
+            </div>
+            
+            <!-- Stats Panel (Collapsible) -->
+            <div class="stats-panel" id="statsPanel">
+                <div class="stats-header">
+                    <h3><i class="fas fa-chart-bar"></i> Game Stats</h3>
+                    <button class="close-stats" onclick="toggleStats()">&times;</button>
+                </div>
+                <div class="stats-content">
+                    <div class="player-info">
+                        <h4><i class="fas fa-user"></i> Player: <span id="currentPlayerName">Commander</span></h4>
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-label">Tiles Controlled</div>
+                                <div class="stat-value" id="playerTiles">1</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">Total Score</div>
+                                <div class="stat-value" id="currentScore">0</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">Total Troops</div>
+                                <div class="stat-value" id="totalTroops">0</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">Active Bots</div>
+                                <div class="stat-value" id="botCount">3</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="game-info">
+                        <h4><i class="fas fa-info-circle"></i> Game Info</h4>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <span>Mode:</span>
+                                <span id="modeInfo">Domination</span>
+                            </div>
+                            <div class="info-item">
+                                <span>Difficulty:</span>
+                                <span id="difficultyLevel">Normal</span>
+                            </div>
+                            <div class="info-item">
+                                <span>Troop Rate:</span>
+                                <span id="troopRate">0.6/sec</span>
+                            </div>
+                            <div class="info-item">
+                                <span>Map Size:</span>
+                                <span id="mapSize">8x8</span>
+                            </div>
+                            <div class="info-item">
+                                <span>Next Wave:</span>
+                                <span id="nextWave">5:00</span>
+                            </div>
+                            <div class="info-item">
+                                <span>Status:</span>
+                                <span id="gameStatusText">Playing</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="game-controls">
+                        <button class="control-btn full" id="restartBtn" onclick="restartGame()">
+                            <i class="fas fa-redo"></i> Restart Game
+                        </button>
+                        <button class="control-btn full secondary" onclick="goToMenu()">
+                            <i class="fas fa-home"></i> Main Menu
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
         
-        <!-- Bottom Troop Selector -->
+        <!-- Permanent Troop Selector -->
         <div class="bottom-troop-selector" id="troopSelector">
             <div class="selector-container">
                 <div class="selector-info">
-                    <span id="selectorMessage">Select troops to deploy:</span>
+                    <span>Troops per attack: <strong id="selectorMessage">5</strong> (Selected tile: <span id="selectedTileInfo">None</span>)</span>
                 </div>
                 <div class="troop-slider-container">
-                    <input type="range" id="troopSlider" min="1" max="10" value="5" class="troop-slider">
+                    <input type="range" id="troopSlider" min="1" max="50" value="5" class="troop-slider">
                     <div class="troop-value-display">
                         <span id="currentTroops">5</span> troops
                     </div>
                     <div class="slider-labels">
                         <span id="minTroopsLabel">1</span>
-                        <span id="maxTroopsLabel">10</span>
+                        <span id="maxTroopsLabel">50</span>
                     </div>
                 </div>
                 <div class="selector-buttons">
-                    <button class="selector-btn cancel-btn" onclick="cancelDeployment()">
-                        <i class="fas fa-times"></i> Cancel
+                    <button class="selector-btn secondary" onclick="setHalfTroops()" title="Set to 50%">
+                        <i class="fas fa-percentage"></i> 50%
                     </button>
-                    <button class="selector-btn confirm-btn" onclick="confirmDeployment()">
-                        <i class="fas fa-paper-plane"></i> Deploy
+                    <button class="selector-btn secondary" onclick="setMaxTroops()" title="Set to maximum">
+                        <i class="fas fa-arrow-up"></i> Max
+                    </button>
+                    <button class="selector-btn" onclick="clearSelection()" title="Clear Selection">
+                        <i class="fas fa-times"></i> Clear
                     </button>
                 </div>
             </div>
         </div>
-        
-        <footer>
-            <p>Conquer tiles, defeat bots, and dominate the battlefield!</p>
-        </footer>
     </div>
 
     <!-- Game Over Modal -->
@@ -187,8 +200,8 @@
                     <div class="result-value" id="finalBots">0</div>
                 </div>
                 <div class="result-item">
-                    <div class="result-label">Total Troops</div>
-                    <div class="result-value" id="finalTroops">0</div>
+                    <div class="result-label">Wave Reached</div>
+                    <div class="result-value" id="finalWave">1</div>
                 </div>
                 <div class="result-item">
                     <div class="result-label">Difficulty</div>
@@ -205,60 +218,6 @@
                 <button class="modal-btn" onclick="viewLeaderboard()" id="viewLeaderboardBtn">
                     <i class="fas fa-trophy"></i> View Leaderboard
                 </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Instructions Modal -->
-    <div class="modal" id="instructionsModal">
-        <div class="modal-content">
-            <span class="close-modal" onclick="closeInstructions()">&times;</span>
-            <h2><i class="fas fa-book"></i> Advanced Game Guide</h2>
-            
-            <div class="instructions-grid">
-                <div class="instruction-section">
-                    <h3><i class="fas fa-chess-board"></i> Tile Mechanics</h3>
-                    <ul>
-                        <li><strong>Blue Tiles:</strong> Your territory - generates troops</li>
-                        <li><strong>Red Tiles:</strong> Bot territory - attacks automatically</li>
-                        <li><strong>Gray Tiles:</strong> Neutral - has defense troops</li>
-                        <li><strong>Number:</strong> Current troop count on tile</li>
-                        <li><strong>Shield Icon:</strong> Difficulty-based defense bonus</li>
-                    </ul>
-                </div>
-                
-                <div class="instruction-section">
-                    <h3><i class="fas fa-crosshairs"></i> NEW Combat System</h3>
-                    <ul>
-                        <li><strong>Difference-Based:</strong> 21 vs 20 = 21 wins with 1 left</li>
-                        <li><strong>Shield System:</strong> Each tile has difficulty-based defense</li>
-                        <li><strong>Custom Deployment:</strong> Use bottom slider to choose troops</li>
-                        <li><strong>No Auto-Takeover:</strong> Only targeted tile is affected</li>
-                        <li>Max <strong>50 troops</strong> per tile</li>
-                    </ul>
-                </div>
-                
-                <div class="instruction-section">
-                    <h3><i class="fas fa-cogs"></i> Strategy Tips</h3>
-                    <ul>
-                        <li>Expand early to generate more troops</li>
-                        <li>Consolidate troops before attacking</li>
-                        <li>Watch for bot attacks on your borders</li>
-                        <li>Use bottom slider for precise troop deployment</li>
-                        <li>Consider shield values when attacking</li>
-                    </ul>
-                </div>
-                
-                <div class="instruction-section">
-                    <h3><i class="fas fa-star"></i> Scoring</h3>
-                    <ul>
-                        <li>+50 points per conquered tile</li>
-                        <li>+100 points per bot defeated</li>
-                        <li>Time bonus: +2 points per second</li>
-                        <li>Troop bonus: +0.5 points per troop</li>
-                        <li>Difficulty multiplier affects all scores</li>
-                    </ul>
-                </div>
             </div>
         </div>
     </div>
