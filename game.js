@@ -1025,10 +1025,10 @@ function isAdjacentHex(tileId1, tileId2) {
 
     const oddRow = r1 % 2 === 1;
 
-    const directions = oddRow
+    const neighbors = oddRow
         ? [
             [0, -1], [0, 1],      // left, right
-            [-1, 0], [-1, 1],     // up-left, up-right
+            [-1, 0], [-1, 1],     // up-left, up-right  ✅ (0,5 from 1,4)
             [1, 0], [1, 1],       // down-left, down-right
         ]
         : [
@@ -1037,7 +1037,7 @@ function isAdjacentHex(tileId1, tileId2) {
             [1, -1], [1, 0],
         ];
 
-    return directions.some(
+    return neighbors.some(
         ([dr, dc]) => r1 + dr === r2 && c1 + dc === c2
     );
 }
