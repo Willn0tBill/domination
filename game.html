@@ -96,19 +96,19 @@
             border: 1px solid #3a7bd5;
         }
         
-        /* Hexagon Grid - FIXED */
+        /* Hexagon Grid - IMPROVED CONNECTED LAYOUT */
         .hex-grid {
             position: relative;
             margin: 20px auto;
             transform-origin: center center;
             transition: transform 0.3s;
-            width: 600px;
-            height: 600px;
+            width: 800px;
+            height: 800px;
         }
         
         .hex-tile {
-            width: 60px;
-            height: 70px;
+            width: 70px;
+            height: 80px;
             position: absolute;
             cursor: pointer;
             clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
@@ -117,11 +117,13 @@
             justify-content: center;
             transition: all 0.2s;
             border: 2px solid transparent;
+            background: rgba(40, 70, 110, 0.9);
         }
         
         .hex-tile:hover {
             transform: scale(1.1);
             z-index: 10;
+            filter: brightness(1.2);
         }
         
         .hex-tile.player {
@@ -137,23 +139,41 @@
         }
         
         .hex-tile.selected {
-            border-color: gold;
-            box-shadow: 0 0 15px gold;
+            border-color: gold !important;
+            box-shadow: 0 0 0 3px gold, 0 0 25px gold !important;
+            z-index: 20;
             animation: pulse 1.5s infinite;
         }
         
         @keyframes pulse {
-            0% { box-shadow: 0 0 10px gold; }
-            50% { box-shadow: 0 0 20px gold; }
-            100% { box-shadow: 0 0 10px gold; }
+            0% { box-shadow: 0 0 0 3px gold, 0 0 25px gold; }
+            50% { box-shadow: 0 0 0 5px gold, 0 0 35px gold; }
+            100% { box-shadow: 0 0 0 3px gold, 0 0 25px gold; }
         }
         
         .tile-content {
             color: white;
             font-weight: bold;
-            text-shadow: 1px 1px 2px black;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.9);
             text-align: center;
-            font-size: 0.9rem;
+            font-size: 1rem;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+        
+        .tile-troops {
+            font-size: 1.2rem;
+            font-weight: 800;
+        }
+        
+        .tile-id {
+            font-size: 0.7rem;
+            opacity: 0.7;
+            margin-top: 3px;
         }
         
         /* Side panel */
@@ -231,6 +251,27 @@
         .troop-slider {
             width: 100%;
             height: 20px;
+            -webkit-appearance: none;
+            background: rgba(0, 30, 60, 0.8);
+            border-radius: 10px;
+            outline: none;
+        }
+        
+        .troop-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: #00d2ff;
+            border: 2px solid white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 0 10px rgba(0, 210, 255, 0.5);
+        }
+        
+        .troop-slider::-webkit-slider-thumb:hover {
+            background: #3a7bd5;
+            transform: scale(1.2);
         }
         
         .troop-value {
@@ -239,6 +280,10 @@
             font-weight: bold;
             color: #00d2ff;
             font-size: 1.2rem;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 2px solid rgba(0, 210, 255, 0.3);
         }
         
         /* Zoom controls */
@@ -315,6 +360,17 @@
             background: #00d2ff;
         }
         
+        /* Battle animation */
+        @keyframes battle {
+            0% { filter: brightness(1) hue-rotate(0deg); }
+            50% { filter: brightness(2) hue-rotate(60deg); }
+            100% { filter: brightness(1) hue-rotate(0deg); }
+        }
+        
+        .hex-tile.battle {
+            animation: battle 0.5s ease-in-out;
+        }
+        
         /* Responsive */
         @media (max-width: 768px) {
             .side-panel {
@@ -322,33 +378,41 @@
             }
             
             .hex-tile {
-                width: 40px;
-                height: 46px;
+                width: 50px;
+                height: 58px;
             }
             
-            .tile-content {
-                font-size: 0.7rem;
+            .tile-troops {
+                font-size: 0.9rem;
+            }
+            
+            .tile-id {
+                font-size: 0.6rem;
             }
             
             .hex-grid {
-                width: 400px;
-                height: 400px;
+                width: 500px;
+                height: 500px;
             }
         }
         
         @media (max-width: 480px) {
             .hex-tile {
-                width: 30px;
-                height: 35px;
+                width: 40px;
+                height: 46px;
             }
             
-            .tile-content {
-                font-size: 0.6rem;
+            .tile-troops {
+                font-size: 0.8rem;
+            }
+            
+            .tile-id {
+                font-size: 0.5rem;
             }
             
             .hex-grid {
-                width: 300px;
-                height: 300px;
+                width: 400px;
+                height: 400px;
             }
         }
     </style>
@@ -458,7 +522,8 @@
 
     <script>
         // ===========================================
-        // DOMINATION GAME - HEXAGON GRID VERSION (FIXED)
+        // DOMINATION GAME - FIXED HEXAGON GRID VERSION
+        // Hexagons are properly connected and troops can move to any adjacent tile
         // ===========================================
 
         // Game State
@@ -623,7 +688,7 @@
             }
             
             updateUI();
-            gameStatus.textContent = `Welcome, Commander ${gameState.playerName}!`;
+            gameStatus.textContent = `Welcome, Commander ${gameState.playerName}! Select a tile, then click adjacent tile to move troops.`;
             gameStatus.className = "game-status player-turn";
             
             // Setup troop slider
@@ -633,7 +698,7 @@
             startGameLoop();
         }
 
-        // Create hexagon tiles - FIXED VERSION
+        // Create hexagon tiles - IMPROVED CONNECTED LAYOUT
         function createHexagonTiles() {
             console.log("Creating hexagon tiles...");
             hexGrid.innerHTML = '';
@@ -647,15 +712,15 @@
             gameState.botTiles = [];
             gameState.troops = {};
             
-            // Create proper hexagon grid
-            const hexWidth = 60;  // Width of hexagon
-            const hexHeight = 70; // Height of hexagon
-            const horizontalSpacing = hexWidth * 0.75;
-            const verticalSpacing = hexHeight * 0.866; // sqrt(3)/2
+            // Hexagon dimensions for proper connection
+            const hexWidth = 70;
+            const hexHeight = 80;
+            const horizontalSpacing = hexWidth * 0.866; // sqrt(3)/2 * width
+            const verticalSpacing = hexHeight * 0.75;
             
-            // Calculate grid dimensions for centering
-            const gridWidth = gridSize * horizontalSpacing;
-            const gridHeight = (gridSize - 1) * verticalSpacing + hexHeight;
+            // Center the grid
+            const gridWidth = (gridSize * horizontalSpacing) + (hexWidth * 0.134);
+            const gridHeight = (gridSize * verticalSpacing) + (hexHeight * 0.25);
             
             hexGrid.style.width = `${gridWidth}px`;
             hexGrid.style.height = `${gridHeight}px`;
@@ -671,22 +736,25 @@
                     tile.dataset.row = row;
                     tile.dataset.col = col;
                     
-                    // Calculate position for hex grid
-                    const x = col * horizontalSpacing;
-                    const y = row * verticalSpacing;
+                    // Calculate position for properly connected hex grid
+                    let x = col * horizontalSpacing;
+                    let y = row * verticalSpacing;
                     
-                    // Offset every other column for hex pattern
-                    if (col % 2 === 1) {
-                        tile.style.top = `${y + hexHeight * 0.5}px`;
-                    } else {
-                        tile.style.top = `${y}px`;
+                    // Offset every other row for true hex pattern
+                    if (row % 2 === 1) {
+                        x += horizontalSpacing / 2;
                     }
+                    
                     tile.style.left = `${x}px`;
+                    tile.style.top = `${y}px`;
                     
                     // Create tile content
                     const content = document.createElement('div');
                     content.className = 'tile-content';
-                    content.textContent = '0';
+                    content.innerHTML = `
+                        <div class="tile-troops">0</div>
+                        <div class="tile-id">${row},${col}</div>
+                    `;
                     
                     tile.appendChild(content);
                     tile.addEventListener('click', () => handleTileClick(tileId));
@@ -708,7 +776,7 @@
             // Apply zoom
             hexGrid.style.transform = `scale(${gameState.zoomLevel})`;
             hexGrid.style.transformOrigin = 'center center';
-            console.log(`Created ${gridSize}x${gridSize} hexagon grid with ${gridSize * gridSize} tiles`);
+            console.log(`Created ${gridSize}x${gridSize} connected hexagon grid`);
         }
 
         // Setup troop slider
@@ -747,22 +815,21 @@
             const startTroops = settings.startingTroops;
             const startTiles = settings.startingTiles;
             
-            // Starting tiles (create a small cluster)
+            // Starting tiles (create a small connected cluster)
             const playerTiles = [];
-            for (let i = 0; i < startTiles; i++) {
-                const row = centerRow + Math.floor(Math.random() * 3) - 1;
-                const col = centerCol + Math.floor(Math.random() * 3) - 1;
-                const tileId = `${row}-${col}`;
-                if (row >= 0 && row < gameState.mapSize && col >= 0 && col < gameState.mapSize) {
-                    if (!playerTiles.includes(tileId)) {
-                        playerTiles.push(tileId);
-                    }
-                }
-            }
+            const startPositions = [
+                `${centerRow}-${centerCol}`,
+                `${centerRow}-${centerCol+1}`,
+                `${centerRow+1}-${centerCol}`,
+                `${centerRow}-${centerCol-1}`
+            ];
             
-            // Ensure at least one tile
-            if (playerTiles.length === 0) {
-                playerTiles.push(`${centerRow}-${centerCol}`);
+            for (let i = 0; i < Math.min(startTiles, startPositions.length); i++) {
+                const tileId = startPositions[i];
+                const [row, col] = tileId.split('-').map(Number);
+                if (row >= 0 && row < gameState.mapSize && col >= 0 && col < gameState.mapSize) {
+                    playerTiles.push(tileId);
+                }
             }
             
             console.log(`Starting with ${playerTiles.length} tiles and ${startTroops} troops each`);
@@ -772,7 +839,7 @@
                 updateTroopDisplayOnTile(tileId);
             });
             
-            gameStatus.textContent = "Domination: Survive infinite waves!";
+            gameStatus.textContent = "Domination: Survive infinite waves! Map expands every 5 minutes!";
             
             // Spawn initial bots
             spawnBots(settings.botSpawnCount);
@@ -790,15 +857,14 @@
             const settings = difficultySettings[gameState.difficulty];
             gameState.troopGenerationRate = settings.troopRate;
             
-            // Player starts in top-left corner
+            // Player starts in top-left area
             const playerTiles = [];
-            for (let i = 0; i < settings.startingTiles; i++) {
-                const row = Math.floor(Math.random() * 3);
-                const col = Math.floor(Math.random() * 3);
-                const tileId = `${row}-${col}`;
-                if (!playerTiles.includes(tileId)) {
-                    playerTiles.push(tileId);
-                }
+            const playerStart = [
+                '0-0', '0-1', '1-0', '1-1'
+            ];
+            
+            for (let i = 0; i < Math.min(settings.startingTiles, playerStart.length); i++) {
+                playerTiles.push(playerStart[i]);
             }
             
             playerTiles.forEach(tileId => {
@@ -830,7 +896,7 @@
             updateTroopDisplayOnTile(playerTile);
             
             // Bot starts on right
-            const botRow = Math.floor(Math.random() * gameState.mapSize);
+            const botRow = Math.floor(gameState.mapSize / 2);
             const botTile = `${botRow}-${gameState.mapSize - 2}`;
             conquerTile(botTile, 'bot');
             gameState.troops[botTile].botTroops = settings.startingTroops * 1.5;
@@ -908,7 +974,7 @@
             });
         }
 
-        // Handle tile click
+        // Handle tile click - IMPROVED: Can move to ANY adjacent tile
         function handleTileClick(tileId) {
             if (!gameState.active || gameState.isPaused) {
                 console.log("Game not active or paused");
@@ -916,152 +982,106 @@
             }
             
             console.log(`Tile clicked: ${tileId}`);
-            const tileData = gameState.troops[tileId];
             
-            // If player owns this tile, select it
-            if (gameState.playerTiles.includes(tileId) && tileData.playerTroops > 0) {
-                console.log(`Selecting player tile: ${tileId} with ${Math.floor(tileData.playerTroops)} troops`);
-                selectTile(tileId);
-                return;
-            }
-            
-            // If a tile is selected and clicked tile is adjacent
+            // If a tile is already selected
             if (gameState.selectedTile) {
-                console.log(`Selected tile: ${gameState.selectedTile}, target: ${tileId}`);
+                const fromTileId = gameState.selectedTile;
                 
-                if (isAdjacentHex(tileId, gameState.selectedTile)) {
-                    const fromTileId = gameState.selectedTile;
+                // Check if clicked tile is adjacent
+                if (isAdjacentHex(tileId, fromTileId)) {
                     const fromTroops = Math.floor(gameState.troops[fromTileId].playerTroops);
                     const deployTroops = Math.floor(fromTroops * (gameState.deploymentPercentage / 100));
                     
-                    console.log(`From: ${fromTileId} (${fromTroops} troops), deploying: ${deployTroops} troops`);
+                    console.log(`Moving ${deployTroops} troops from ${fromTileId} to ${tileId}`);
                     
                     if (deployTroops < 1) {
-                        gameStatus.textContent = "Need at least 1 troop to deploy!";
+                        gameStatus.textContent = "Need at least 1 troop to move!";
                         return;
                     }
                     
-                    // Determine action type
-                    if (gameState.playerTiles.includes(tileId)) {
-                        console.log(`Reinforcing tile ${tileId} from ${fromTileId}`);
-                        reinforceTile(fromTileId, tileId, deployTroops);
-                    } else {
-                        console.log(`Attacking tile ${tileId} from ${fromTileId}`);
-                        attackTile(fromTileId, tileId, deployTroops);
-                    }
-                    
+                    // Move troops to ANY adjacent tile (friend or foe)
+                    moveTroops(fromTileId, tileId, deployTroops);
                     deselectTile();
                 } else {
-                    console.log(`Target not adjacent to ${gameState.selectedTile}`);
                     gameStatus.textContent = "Target not adjacent!";
                     deselectTile();
                 }
-            } else if (gameState.selectedTile) {
-                console.log("Deselecting tile");
-                deselectTile();
+            } 
+            // If no tile selected, select this tile if player owns it
+            else if (gameState.playerTiles.includes(tileId)) {
+                const tileData = gameState.troops[tileId];
+                if (tileData.playerTroops > 0) {
+                    selectTile(tileId);
+                    gameStatus.textContent = `Selected ${tileId}. Click adjacent tile to move troops.`;
+                }
             }
         }
 
-        // Attack tile
-        function attackTile(attackerTileId, defenderTileId, attackTroops) {
-            const attackerData = gameState.troops[attackerTileId];
-            const defenderData = gameState.troops[defenderTileId];
-            
-            console.log(`Attack: ${attackerTileId} -> ${defenderTileId} with ${attackTroops} troops`);
-            
-            // Check if we have enough troops
-            if (attackTroops > attackerData.playerTroops) {
-                gameStatus.textContent = "Not enough troops!";
-                return;
-            }
-            
-            // Remove attacking troops
-            attackerData.playerTroops -= attackTroops;
-            
-            let defenseStrength = 0;
-            let defenderOwner = defenderData.owner;
-            const shield = defenderData.shield || 0;
-            
-            if (defenderOwner === 'neutral') {
-                defenseStrength = defenderData.neutralTroops + shield;
-                console.log(`Neutral defense: ${defenseStrength} (${defenderData.neutralTroops} + ${shield} shield)`);
-            } else if (defenderOwner === 'bot') {
-                defenseStrength = defenderData.botTroops + shield;
-                console.log(`Bot defense: ${defenseStrength} (${defenderData.botTroops} + ${shield} shield)`);
-            }
-            
-            // DIFFERENCE-BASED COMBAT
-            if (attackTroops > defenseStrength) {
-                // Attacker wins
-                const survivingTroops = attackTroops - defenseStrength;
-                console.log(`Attacker wins! Surviving troops: ${survivingTroops}`);
-                
-                // Clear defender troops
-                defenderData.neutralTroops = 0;
-                defenderData.botTroops = 0;
-                
-                if (defenderOwner === 'neutral') {
-                    defenderData.playerTroops = survivingTroops;
-                    conquerTile(defenderTileId, 'player');
-                    gameState.score += 25;
-                    gameStatus.textContent = `Captured neutral territory! ${survivingTroops} troops remain.`;
-                } else if (defenderOwner === 'bot') {
-                    defenderData.playerTroops = survivingTroops;
-                    conquerTile(defenderTileId, 'player');
-                    gameState.score += 100;
-                    gameState.botsDefeated = (gameState.botsDefeated || 0) + 1;
-                    gameStatus.textContent = `Victory! Defeated bot. ${survivingTroops} troops remain.`;
-                    
-                    // Check if bot is completely defeated
-                    checkBotDefeated();
-                }
-            } else {
-                // Defender wins
-                const survivingDefenders = defenseStrength - attackTroops;
-                console.log(`Defender wins! Surviving defenders: ${survivingDefenders}`);
-                
-                if (defenderOwner === 'neutral') {
-                    defenderData.neutralTroops = Math.max(1, survivingDefenders - shield);
-                    gameStatus.textContent = `Attack failed! Neutral tile defended.`;
-                } else if (defenderOwner === 'bot') {
-                    defenderData.botTroops = Math.max(1, survivingDefenders - shield);
-                    gameStatus.textContent = `Attack failed! Bot defended.`;
-                }
-            }
-            
-            // Battle animation
-            animateBattle(attackerTileId, defenderTileId);
-            
-            updateTroopDisplayOnTile(attackerTileId);
-            updateTroopDisplayOnTile(defenderTileId);
-        }
-
-        // Reinforce tile (move troops between player tiles)
-        function reinforceTile(fromTileId, toTileId, troops) {
+        // Move troops to ANY adjacent tile (updated to handle all cases)
+        function moveTroops(fromTileId, toTileId, troops) {
             const fromData = gameState.troops[fromTileId];
             const toData = gameState.troops[toTileId];
             
-            console.log(`Reinforce: ${fromTileId} -> ${toTileId} with ${troops} troops`);
+            console.log(`Moving ${troops} troops from ${fromTileId} to ${toTileId}`);
             
             if (troops > fromData.playerTroops) {
                 gameStatus.textContent = "Not enough troops!";
                 return;
             }
             
+            // Remove troops from source
             fromData.playerTroops -= troops;
-            toData.playerTroops += troops;
             
-            // Cap at max troops
-            if (toData.playerTroops > gameState.maxTroopsPerTile) {
-                const excess = toData.playerTroops - gameState.maxTroopsPerTile;
-                toData.playerTroops = gameState.maxTroopsPerTile;
-                fromData.playerTroops += excess;
+            // Different behavior based on target ownership
+            if (toData.owner === 'player') {
+                // Reinforcing friendly tile
+                toData.playerTroops += troops;
+                gameStatus.textContent = `Reinforced ${toTileId} with ${troops} troops`;
+            } else {
+                // Attacking enemy/neutral tile
+                const defenseStrength = toData.owner === 'bot' ? toData.botTroops : toData.neutralTroops;
+                const totalDefense = defenseStrength + toData.shield;
+                
+                if (troops > totalDefense) {
+                    // Attacker wins
+                    const survivingTroops = troops - totalDefense;
+                    
+                    // Clear defender troops
+                    if (toData.owner === 'bot') {
+                        toData.botTroops = 0;
+                        gameState.score += 100;
+                        gameState.botsDefeated = (gameState.botsDefeated || 0) + 1;
+                    } else {
+                        toData.neutralTroops = 0;
+                        gameState.score += 25;
+                    }
+                    
+                    // Conquer tile
+                    toData.playerTroops = survivingTroops;
+                    conquerTile(toTileId, 'player');
+                    
+                    gameStatus.textContent = `Captured ${toTileId}! ${survivingTroops} troops remain.`;
+                } else {
+                    // Defender wins
+                    const survivingDefenders = totalDefense - troops;
+                    
+                    if (toData.owner === 'bot') {
+                        toData.botTroops = Math.max(1, survivingDefenders - toData.shield);
+                    } else {
+                        toData.neutralTroops = Math.max(1, survivingDefenders - toData.shield);
+                    }
+                    
+                    gameStatus.textContent = `Attack failed! ${toData.owner} defended.`;
+                }
+            }
+            
+            // Battle animation for attacks
+            if (toData.owner !== 'player') {
+                animateBattle(fromTileId, toTileId);
             }
             
             updateTroopDisplayOnTile(fromTileId);
             updateTroopDisplayOnTile(toTileId);
-            
-            gameStatus.textContent = `Moved ${troops} troops`;
         }
 
         // Select tile
@@ -1150,10 +1170,10 @@
                 const fromTroops = gameState.troops[fromTileId].botTroops;
                 const deployTroops = Math.floor(fromTroops * (0.4 + bot.aggression * 0.3));
                 
-                // Find adjacent tiles (hexagon grid)
+                // Find adjacent tiles
                 const adjacentTiles = getAdjacentHexTiles(fromTileId);
                 
-                // Find targets
+                // Find targets (bots can attack ANY adjacent tile)
                 const playerTargets = adjacentTiles.filter(tileId => 
                     gameState.playerTiles.includes(tileId)
                 );
@@ -1205,6 +1225,7 @@
                             conquerTile(targetTileId, 'bot');
                             gameStatus.textContent = "AI captured your territory!";
                             gameStatus.className = "game-status bot-turn";
+                            animateBattle(fromTileId, targetTileId);
                         }
                     } else if (targetType === 'neutral') {
                         const defense = defenderData.neutralTroops + defenderData.shield;
@@ -1213,6 +1234,7 @@
                             defenderData.neutralTroops = 0;
                             defenderData.botTroops = surviving;
                             conquerTile(targetTileId, 'bot');
+                            animateBattle(fromTileId, targetTileId);
                         }
                     }
                     
@@ -1295,10 +1317,9 @@
             // Save current player and bot tiles
             const savedPlayerTiles = [...gameState.playerTiles];
             const savedBotTiles = [...gameState.botTiles];
-            const savedNeutralTiles = [...gameState.neutralTiles];
             const savedTroops = JSON.parse(JSON.stringify(gameState.troops));
             
-            // Regenerate tiles with new size (hexagon grid)
+            // Regenerate tiles with new size
             createHexagonTiles();
             
             // Restore player and bot tiles in new grid
@@ -1438,7 +1459,7 @@
 
         // ========== HEXAGON GRID FUNCTIONS ==========
 
-        // Check if hexagon tiles are adjacent
+        // Check if hexagon tiles are adjacent - IMPROVED LOGIC
         function isAdjacentHex(tileId1, tileId2) {
             const [row1, col1] = tileId1.split('-').map(Number);
             const [row2, col2] = tileId2.split('-').map(Number);
@@ -1446,15 +1467,15 @@
             const rowDiff = Math.abs(row1 - row2);
             const colDiff = Math.abs(col1 - col2);
             
-            // For hex grid:
-            // Same row, adjacent columns
+            // For properly connected hex grid:
+            // 1. Same row, adjacent columns
             if (rowDiff === 0 && colDiff === 1) return true;
             
-            // Different rows (hex offset)
+            // 2. Different rows, check based on row parity
             if (rowDiff === 1) {
-                if (col1 % 2 === 0) { // Even column
+                if (row1 % 2 === 0) { // Even row
                     return (col2 === col1) || (col2 === col1 + 1);
-                } else { // Odd column
+                } else { // Odd row
                     return (col2 === col1) || (col2 === col1 - 1);
                 }
             }
@@ -1468,36 +1489,41 @@
             const gridSize = gameState.mapSize;
             const adjacent = [];
             
-            // Same row
-            if (col > 0) adjacent.push(`${row}-${col-1}`);
-            if (col < gridSize - 1) adjacent.push(`${row}-${col+1}`);
+            // All possible adjacent positions for hex grid
+            const directions = [
+                [0, -1],  // left
+                [0, 1],   // right
+                [-1, 0],  // up-left/up-right depending on row
+                [-1, 1],  // up-right/up-left depending on row
+                [1, 0],   // down-left/down-right depending on row
+                [1, 1]    // down-right/down-left depending on row
+            ];
             
-            // Row above
-            if (row > 0) {
-                if (col % 2 === 0) { // Even column
-                    if (col > 0) adjacent.push(`${row-1}-${col-1}`);
-                    adjacent.push(`${row-1}-${col}`);
-                } else { // Odd column
-                    adjacent.push(`${row-1}-${col}`);
-                    if (col < gridSize - 1) adjacent.push(`${row-1}-${col+1}`);
+            // Adjust directions based on row parity
+            let adjustedDirections = directions;
+            if (row % 2 === 0) {
+                // Even row adjustments
+                adjustedDirections = [
+                    [0, -1],  // left
+                    [0, 1],   // right
+                    [-1, -1], // up-left
+                    [-1, 0],  // up-right
+                    [1, -1],  // down-left
+                    [1, 0]    // down-right
+                ];
+            }
+            
+            // Check all directions
+            for (const [dr, dc] of adjustedDirections) {
+                const newRow = row + dr;
+                const newCol = col + dc;
+                
+                if (newRow >= 0 && newRow < gridSize && newCol >= 0 && newCol < gridSize) {
+                    adjacent.push(`${newRow}-${newCol}`);
                 }
             }
             
-            // Row below
-            if (row < gridSize - 1) {
-                if (col % 2 === 0) { // Even column
-                    if (col > 0) adjacent.push(`${row+1}-${col-1}`);
-                    adjacent.push(`${row+1}-${col}`);
-                } else { // Odd column
-                    adjacent.push(`${row+1}-${col}`);
-                    if (col < gridSize - 1) adjacent.push(`${row+1}-${col+1}`);
-                }
-            }
-            
-            return adjacent.filter(id => {
-                const [r, c] = id.split('-').map(Number);
-                return r >= 0 && r < gridSize && c >= 0 && c < gridSize;
-            });
+            return adjacent;
         }
 
         // ========== HELPER FUNCTIONS ==========
@@ -1520,7 +1546,7 @@
                 troopCount = Math.floor(troopData.neutralTroops);
             }
             
-            const content = tile.querySelector('.tile-content');
+            const content = tile.querySelector('.tile-troops');
             if (content) content.textContent = troopCount;
         }
 
@@ -1723,20 +1749,6 @@
                 modal.style.display = 'none';
             }
         };
-
-        // Add battle animation CSS
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes battle {
-                0% { filter: brightness(1); }
-                50% { filter: brightness(2); }
-                100% { filter: brightness(1); }
-            }
-            .hex-tile.battle {
-                animation: battle 0.5s ease-in-out;
-            }
-        `;
-        document.head.appendChild(style);
 
         // Initialize game
         document.addEventListener('DOMContentLoaded', function() {
