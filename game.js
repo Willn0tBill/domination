@@ -1033,9 +1033,9 @@ function isAdjacentHex(tileId1, tileId2) {
     // Different rows (hex offset)
     if (rowDiff === 1) {
         if (row1 % 2 === 0) { // Even row
-            return (c2 === col1) || (c2 === col1 + 1);
+            return (col2 === col1) || (col2 === col1 + 1);
         } else { // Odd row
-            return (c2 === col1) || (c2 === col1 - 1);
+            return (col2 === col1) || (col2 === col1 - 1);
         }
     }
     
