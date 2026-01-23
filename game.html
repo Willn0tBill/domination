@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Domination - Game</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -12,6 +12,8 @@
             padding: 0;
             box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
         }
         
         body {
@@ -19,53 +21,65 @@
             color: white;
             overflow: hidden;
             height: 100vh;
+            width: 100vw;
+            position: fixed;
         }
         
         .game-container {
             display: flex;
             height: 100vh;
             flex-direction: column;
+            width: 100%;
         }
         
         /* Header */
         .game-header {
             background: rgba(0, 20, 40, 0.95);
-            padding: 10px 20px;
+            padding: 10px 15px;
             border-bottom: 2px solid #3a7bd5;
             display: flex;
             justify-content: space-between;
             align-items: center;
             height: 60px;
+            min-height: 60px;
+            width: 100%;
+            flex-shrink: 0;
         }
         
         .game-header h1 {
             color: #00d2ff;
-            font-size: 1.5rem;
+            font-size: 1.3rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         
         .header-right {
             display: flex;
-            gap: 15px;
+            gap: 10px;
             align-items: center;
         }
         
         .wave-info {
             background: rgba(0, 30, 60, 0.7);
-            padding: 5px 10px;
+            padding: 5px 8px;
             border-radius: 5px;
             border: 1px solid #00d2ff;
+            font-size: 0.9rem;
         }
         
         .back-btn {
             background: #3a7bd5;
             color: white;
             border: none;
-            padding: 8px 15px;
+            padding: 6px 12px;
             border-radius: 5px;
             cursor: pointer;
             display: flex;
             align-items: center;
             gap: 5px;
+            font-size: 0.9rem;
+            white-space: nowrap;
         }
         
         .back-btn:hover {
@@ -77,6 +91,8 @@
             flex: 1;
             display: flex;
             overflow: hidden;
+            width: 100%;
+            position: relative;
         }
         
         /* Game board */
@@ -84,31 +100,49 @@
             flex: 1;
             position: relative;
             overflow: auto;
-            padding: 20px;
+            padding: 10px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
         }
         
         .game-status {
             background: rgba(0, 30, 60, 0.7);
-            padding: 10px;
+            padding: 8px 10px;
             border-radius: 5px;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
             text-align: center;
             border: 1px solid #3a7bd5;
+            font-size: 0.9rem;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1.3;
+            width: 100%;
+            flex-shrink: 0;
         }
         
-        /* Hexagon Grid - IMPROVED CONNECTED LAYOUT */
+        /* Hexagon Grid Container */
+        .hex-grid-container {
+            flex: 1;
+            overflow: auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            position: relative;
+        }
+        
         .hex-grid {
             position: relative;
-            margin: 20px auto;
             transform-origin: center center;
             transition: transform 0.3s;
-            width: 800px;
-            height: 800px;
+            margin: auto;
         }
         
+        /* Dynamic hexagon tiles */
         .hex-tile {
-            width: 70px;
-            height: 80px;
             position: absolute;
             cursor: pointer;
             clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
@@ -118,10 +152,11 @@
             transition: all 0.2s;
             border: 2px solid transparent;
             background: rgba(40, 70, 110, 0.9);
+            touch-action: manipulation;
         }
         
-        .hex-tile:hover {
-            transform: scale(1.1);
+        .hex-tile:hover, .hex-tile:active {
+            transform: scale(1.05);
             z-index: 10;
             filter: brightness(1.2);
         }
@@ -156,96 +191,134 @@
             font-weight: bold;
             text-shadow: 1px 1px 3px rgba(0,0,0,0.9);
             text-align: center;
-            font-size: 1rem;
             width: 100%;
             height: 100%;
             display: flex;
             align-items: center;
             justify-content: center;
             flex-direction: column;
+            pointer-events: none;
         }
         
         .tile-troops {
-            font-size: 1.2rem;
             font-weight: 800;
         }
         
         .tile-id {
-            font-size: 0.7rem;
             opacity: 0.7;
-            margin-top: 3px;
+            margin-top: 2px;
         }
         
-        /* Side panel */
+        /* Side panel - Mobile optimized */
         .side-panel {
             width: 300px;
             background: rgba(0, 20, 40, 0.95);
             border-left: 2px solid #3a7bd5;
-            padding: 20px;
+            padding: 15px;
             overflow-y: auto;
+            flex-shrink: 0;
+        }
+        
+        .mobile-side-toggle {
+            display: none;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 30, 60, 0.9);
+            border: 2px solid #3a7bd5;
+            color: #00d2ff;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            cursor: pointer;
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
         }
         
         .panel-section {
             background: rgba(0, 30, 60, 0.7);
-            padding: 15px;
+            padding: 12px;
             border-radius: 8px;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
             border: 1px solid rgba(100, 150, 255, 0.2);
         }
         
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
+            gap: 8px;
         }
         
         .stat-card {
             text-align: center;
-            padding: 10px;
+            padding: 8px;
             background: rgba(0, 40, 80, 0.6);
             border-radius: 5px;
         }
         
         .stat-value {
-            font-size: 1.5rem;
+            font-size: 1.3rem;
             color: #00d2ff;
             font-weight: bold;
         }
         
         .control-btn {
             width: 100%;
-            padding: 12px;
+            padding: 10px;
             margin: 5px 0;
             background: #3a7bd5;
             color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 1rem;
+            font-size: 0.9rem;
         }
         
         .control-btn:hover {
             background: #00d2ff;
         }
         
-        /* Bottom troop selector */
+        /* Bottom troop selector - Mobile optimized */
         .troop-selector {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
             background: rgba(0, 20, 40, 0.95);
-            padding: 15px;
+            padding: 10px 15px;
             border-top: 2px solid #3a7bd5;
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 20px;
+            justify-content: space-between;
+            gap: 10px;
+            height: 70px;
+            min-height: 70px;
+            flex-shrink: 0;
+            z-index: 100;
+        }
+        
+        .selector-info {
+            color: #a0c8ff;
+            font-size: 0.9rem;
+            min-width: 120px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .selector-info strong {
+            color: #00d2ff;
+            font-size: 1rem;
         }
         
         .troop-slider-container {
             flex: 1;
-            max-width: 400px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
         }
         
         .troop-slider {
@@ -255,6 +328,7 @@
             background: rgba(0, 30, 60, 0.8);
             border-radius: 10px;
             outline: none;
+            margin: 0;
         }
         
         .troop-slider::-webkit-slider-thumb {
@@ -275,35 +349,36 @@
         }
         
         .troop-value {
-            min-width: 60px;
+            min-width: 50px;
             text-align: center;
             font-weight: bold;
             color: #00d2ff;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             background: rgba(0, 0, 0, 0.5);
-            padding: 8px 12px;
+            padding: 6px 10px;
             border-radius: 8px;
             border: 2px solid rgba(0, 210, 255, 0.3);
         }
         
-        /* Zoom controls */
+        /* Zoom controls - Mobile optimized */
         .zoom-controls {
             position: fixed;
             bottom: 80px;
-            right: 20px;
+            right: 10px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 8px;
+            z-index: 50;
         }
         
         .zoom-btn {
-            width: 40px;
-            height: 40px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
             background: rgba(0, 30, 60, 0.9);
             border: 2px solid #3a7bd5;
             color: #00d2ff;
-            font-size: 1.2rem;
+            font-size: 1rem;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -323,37 +398,41 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            z-index: 1000;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 2000;
             align-items: center;
             justify-content: center;
+            padding: 20px;
         }
         
         .modal-content {
             background: linear-gradient(135deg, #0c1a2d 0%, #1a3a5f 100%);
-            padding: 30px;
+            padding: 20px;
             border-radius: 15px;
             border: 2px solid #3a7bd5;
             max-width: 600px;
-            width: 90%;
+            width: 100%;
             text-align: center;
         }
         
         .modal-buttons {
             display: flex;
-            gap: 15px;
+            gap: 10px;
             justify-content: center;
             margin-top: 20px;
+            flex-wrap: wrap;
         }
         
         .modal-btn {
-            padding: 12px 25px;
+            padding: 10px 20px;
             background: #3a7bd5;
             color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 1rem;
+            font-size: 0.9rem;
+            flex: 1;
+            min-width: 120px;
         }
         
         .modal-btn:hover {
@@ -371,53 +450,160 @@
             animation: battle 0.5s ease-in-out;
         }
         
-        /* Responsive */
-        @media (max-width: 768px) {
+        /* Responsive Design */
+        @media (max-width: 1024px) {
             .side-panel {
+                width: 250px;
+                padding: 10px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .game-header h1 {
+                font-size: 1.1rem;
+            }
+            
+            .wave-info {
                 display: none;
             }
             
-            .hex-tile {
-                width: 50px;
-                height: 58px;
+            .game-area {
+                flex-direction: column;
             }
             
-            .tile-troops {
+            .side-panel {
+                position: fixed;
+                top: 60px;
+                right: -100%;
+                width: 100%;
+                height: calc(100vh - 130px);
+                transition: right 0.3s ease;
+                z-index: 90;
+                border-left: none;
+                border-top: 2px solid #3a7bd5;
+            }
+            
+            .side-panel.active {
+                right: 0;
+            }
+            
+            .mobile-side-toggle {
+                display: flex;
+            }
+            
+            .game-board-container {
+                padding: 5px;
+            }
+            
+            .zoom-controls {
+                bottom: 80px;
+                right: 5px;
+            }
+            
+            .zoom-btn {
+                width: 32px;
+                height: 32px;
                 font-size: 0.9rem;
-            }
-            
-            .tile-id {
-                font-size: 0.6rem;
-            }
-            
-            .hex-grid {
-                width: 500px;
-                height: 500px;
             }
         }
         
         @media (max-width: 480px) {
-            .hex-tile {
-                width: 40px;
-                height: 46px;
+            .game-header {
+                padding: 10px;
+                height: 50px;
+                min-height: 50px;
             }
             
-            .tile-troops {
+            .game-header h1 {
+                font-size: 1rem;
+            }
+            
+            .back-btn {
+                padding: 5px 10px;
                 font-size: 0.8rem;
             }
             
-            .tile-id {
-                font-size: 0.5rem;
+            .game-status {
+                padding: 6px 8px;
+                font-size: 0.8rem;
+                min-height: 35px;
             }
             
-            .hex-grid {
-                width: 400px;
-                height: 400px;
+            .troop-selector {
+                padding: 8px 10px;
+                height: 60px;
+                min-height: 60px;
+                gap: 5px;
             }
+            
+            .selector-info {
+                font-size: 0.8rem;
+                min-width: 100px;
+            }
+            
+            .selector-info strong {
+                font-size: 0.9rem;
+            }
+            
+            .troop-value {
+                min-width: 40px;
+                font-size: 1rem;
+                padding: 4px 8px;
+            }
+            
+            .zoom-controls {
+                bottom: 70px;
+            }
+            
+            .modal-content {
+                padding: 15px;
+            }
+            
+            .modal-btn {
+                padding: 8px 15px;
+                font-size: 0.8rem;
+                min-width: 100px;
+            }
+        }
+        
+        @media (max-height: 600px) {
+            .game-header {
+                height: 50px;
+                min-height: 50px;
+            }
+            
+            .troop-selector {
+                height: 60px;
+                min-height: 60px;
+            }
+            
+            .game-status {
+                margin-bottom: 5px;
+                padding: 5px;
+                font-size: 0.8rem;
+            }
+        }
+        
+        /* Prevent text selection */
+        .no-select {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        
+        /* Hide scrollbars but keep functionality */
+        .hex-grid-container::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .hex-grid-container {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
     </style>
 </head>
-<body>
+<body class="no-select">
     <div class="game-container">
         <!-- Header -->
         <div class="game-header">
@@ -434,11 +620,18 @@
         
         <!-- Main game area -->
         <div class="game-area">
+            <!-- Side panel toggle for mobile -->
+            <button class="mobile-side-toggle" id="sidePanelToggle" onclick="toggleSidePanel()">
+                <i class="fas fa-bars"></i>
+            </button>
+            
             <!-- Game board -->
             <div class="game-board-container">
-                <div class="game-status" id="gameStatus">Welcome to Domination!</div>
-                <div class="hex-grid" id="hexGrid">
-                    <!-- Hexagons will be generated here -->
+                <div class="game-status" id="gameStatus">Welcome to Domination! Select your tile, then click adjacent tile.</div>
+                <div class="hex-grid-container">
+                    <div class="hex-grid" id="hexGrid">
+                        <!-- Hexagons will be generated here -->
+                    </div>
                 </div>
                 
                 <!-- Zoom controls (only for domination mode) -->
@@ -450,7 +643,7 @@
             </div>
             
             <!-- Side panel -->
-            <div class="side-panel">
+            <div class="side-panel" id="sidePanel">
                 <div class="panel-section">
                     <h3><i class="fas fa-user"></i> Player: <span id="playerName">Commander</span></h3>
                 </div>
@@ -485,19 +678,18 @@
                     <button class="control-btn" onclick="restartGame()">
                         <i class="fas fa-redo"></i> Restart
                     </button>
+                    <button class="control-btn" onclick="toggleSidePanel()" style="display: none;" id="closePanelBtn">
+                        <i class="fas fa-times"></i> Close Panel
+                    </button>
                 </div>
             </div>
         </div>
         
         <!-- Bottom troop selector -->
         <div class="troop-selector">
-            <div>Selected: <strong id="selectedTileInfo">None</strong></div>
+            <div class="selector-info">Selected: <strong id="selectedTileInfo">None</strong></div>
             <div class="troop-slider-container">
                 <input type="range" id="troopSlider" min="10" max="100" value="50" class="troop-slider">
-                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: #a0c8ff;">
-                    <span>10%</span>
-                    <span>100%</span>
-                </div>
             </div>
             <div class="troop-value" id="troopValue">50%</div>
         </div>
@@ -522,8 +714,9 @@
 
     <script>
         // ===========================================
-        // DOMINATION GAME - FIXED HEXAGON GRID VERSION
-        // Hexagons are properly connected and troops can move to any adjacent tile
+        // DOMINATION GAME - MOBILE FRIENDLY VERSION
+        // Dynamic hexagon sizing and fully responsive
+        // Fixed adjacency issues for all directions
         // ===========================================
 
         // Game State
@@ -551,17 +744,16 @@
             
             // Domination mode specific
             wave: 1,
-            waveTimer: 300, // 5 minutes
+            waveTimer: 300,
             mapSize: 8,
             zoomLevel: 1,
             
+            // Dynamic sizing
+            hexSize: 60,
+            isMobile: false,
+            
             // Deployment system
             deploymentPercentage: 50,
-            
-            // Settings
-            soundEnabled: true,
-            theme: 'default',
-            tileSize: 'medium'
         };
 
         // Extreme difficulty settings
@@ -635,6 +827,9 @@
         const troopSlider = document.getElementById('troopSlider');
         const troopValue = document.getElementById('troopValue');
         const selectedTileInfo = document.getElementById('selectedTileInfo');
+        const sidePanel = document.getElementById('sidePanel');
+        const sidePanelToggle = document.getElementById('sidePanelToggle');
+        const closePanelBtn = document.getElementById('closePanelBtn');
 
         // UI Elements
         const statTiles = document.getElementById('statTiles');
@@ -643,9 +838,47 @@
         const statBots = document.getElementById('statBots');
         const playerNameElement = document.getElementById('playerName');
 
+        // Check if mobile
+        function checkMobile() {
+            gameState.isMobile = window.innerWidth <= 768;
+            return gameState.isMobile;
+        }
+
+        // Calculate dynamic hex size based on screen
+        function calculateHexSize() {
+            const screenWidth = window.innerWidth;
+            const screenHeight = window.innerHeight;
+            
+            if (checkMobile()) {
+                // Mobile: smaller hexes
+                if (screenWidth < 400) {
+                    return 35; // Very small phones
+                } else if (screenWidth < 480) {
+                    return 40; // Small phones
+                } else {
+                    return 45; // Larger phones
+                }
+            } else {
+                // Desktop/Tablet
+                if (screenWidth < 1024) {
+                    return 50; // Tablets
+                } else if (screenWidth < 1440) {
+                    return 60; // Medium screens
+                } else {
+                    return 70; // Large screens
+                }
+            }
+        }
+
         // Initialize Game
         function initGame() {
             console.log("Initializing game...");
+            
+            // Detect device type
+            checkMobile();
+            
+            // Calculate dynamic hex size
+            gameState.hexSize = calculateHexSize();
             
             // Load settings
             gameState.playerName = localStorage.getItem('dominationPlayerName') || 'Commander';
@@ -675,6 +908,11 @@
                 if (zoomControls) zoomControls.style.display = 'none';
             }
             
+            // Show/hide close panel button on mobile
+            if (closePanelBtn) {
+                closePanelBtn.style.display = gameState.isMobile ? 'block' : 'none';
+            }
+            
             // Create hexagon tiles
             createHexagonTiles();
             
@@ -688,7 +926,7 @@
             }
             
             updateUI();
-            gameStatus.textContent = `Welcome, Commander ${gameState.playerName}! Select a tile, then click adjacent tile to move troops.`;
+            gameStatus.textContent = `Welcome, Commander ${gameState.playerName}! Select your tile, then click adjacent tile.`;
             gameStatus.className = "game-status player-turn";
             
             // Setup troop slider
@@ -696,11 +934,16 @@
             
             // Start game loop
             startGameLoop();
+            
+            // Center the grid
+            setTimeout(() => {
+                centerHexGrid();
+            }, 100);
         }
 
-        // Create hexagon tiles - IMPROVED CONNECTED LAYOUT
+        // Create hexagon tiles - DYNAMIC SIZING
         function createHexagonTiles() {
-            console.log("Creating hexagon tiles...");
+            console.log(`Creating hexagon tiles (size: ${gameState.hexSize})...`);
             hexGrid.innerHTML = '';
             
             // Set grid size based on mode
@@ -712,13 +955,13 @@
             gameState.botTiles = [];
             gameState.troops = {};
             
-            // Hexagon dimensions for proper connection
-            const hexWidth = 70;
-            const hexHeight = 80;
-            const horizontalSpacing = hexWidth * 0.866; // sqrt(3)/2 * width
+            // Dynamic hexagon dimensions
+            const hexWidth = gameState.hexSize;
+            const hexHeight = hexWidth * 1.1547; // 2/√3 ratio for perfect hexagons
+            const horizontalSpacing = hexWidth * 0.866; // sqrt(3)/2
             const verticalSpacing = hexHeight * 0.75;
             
-            // Center the grid
+            // Calculate grid dimensions
             const gridWidth = (gridSize * horizontalSpacing) + (hexWidth * 0.134);
             const gridHeight = (gridSize * verticalSpacing) + (hexHeight * 0.25);
             
@@ -736,6 +979,10 @@
                     tile.dataset.row = row;
                     tile.dataset.col = col;
                     
+                    // Set dynamic size
+                    tile.style.width = `${hexWidth}px`;
+                    tile.style.height = `${hexHeight}px`;
+                    
                     // Calculate position for properly connected hex grid
                     let x = col * horizontalSpacing;
                     let y = row * verticalSpacing;
@@ -748,16 +995,28 @@
                     tile.style.left = `${x}px`;
                     tile.style.top = `${y}px`;
                     
-                    // Create tile content
+                    // Create tile content with dynamic font sizing
                     const content = document.createElement('div');
                     content.className = 'tile-content';
+                    
+                    // Calculate font size based on hex size
+                    const fontSize = Math.max(10, hexWidth * 0.22);
+                    const smallFontSize = Math.max(8, hexWidth * 0.12);
+                    
                     content.innerHTML = `
-                        <div class="tile-troops">0</div>
-                        <div class="tile-id">${row},${col}</div>
+                        <div class="tile-troops" style="font-size: ${fontSize}px">0</div>
+                        <div class="tile-id" style="font-size: ${smallFontSize}px">${row},${col}</div>
                     `;
                     
                     tile.appendChild(content);
+                    
+                    // Add both click and touch events for mobile
                     tile.addEventListener('click', () => handleTileClick(tileId));
+                    tile.addEventListener('touchstart', (e) => {
+                        e.preventDefault();
+                        handleTileClick(tileId);
+                    }, { passive: false });
+                    
                     hexGrid.appendChild(tile);
                     
                     // Initialize troop data
@@ -779,6 +1038,18 @@
             console.log(`Created ${gridSize}x${gridSize} connected hexagon grid`);
         }
 
+        // Center the hex grid in its container
+        function centerHexGrid() {
+            const container = hexGrid.parentElement;
+            const containerWidth = container.clientWidth;
+            const containerHeight = container.clientHeight;
+            const gridWidth = hexGrid.offsetWidth * gameState.zoomLevel;
+            const gridHeight = hexGrid.offsetHeight * gameState.zoomLevel;
+            
+            hexGrid.style.marginLeft = `${(containerWidth - gridWidth) / 2}px`;
+            hexGrid.style.marginTop = `${(containerHeight - gridHeight) / 2}px`;
+        }
+
         // Setup troop slider
         function setupTroopSlider() {
             console.log("Setting up troop slider...");
@@ -790,6 +1061,15 @@
                 updateTroopDisplay();
                 localStorage.setItem('dominationDeploymentPercentage', gameState.deploymentPercentage);
             });
+            
+            // Add touch support for slider
+            troopSlider.addEventListener('touchstart', (e) => {
+                e.stopPropagation();
+            }, { passive: true });
+            
+            troopSlider.addEventListener('touchmove', (e) => {
+                e.stopPropagation();
+            }, { passive: true });
         }
 
         function updateTroopDisplay() {
@@ -815,13 +1095,16 @@
             const startTroops = settings.startingTroops;
             const startTiles = settings.startingTiles;
             
-            // Starting tiles (create a small connected cluster)
+            // Starting tiles - ensure they're connected
             const playerTiles = [];
             const startPositions = [
                 `${centerRow}-${centerCol}`,
                 `${centerRow}-${centerCol+1}`,
                 `${centerRow+1}-${centerCol}`,
-                `${centerRow}-${centerCol-1}`
+                `${centerRow}-${centerCol-1}`,
+                `${centerRow-1}-${centerCol}`,
+                `${centerRow+1}-${centerCol+1}`,
+                `${centerRow-1}-${centerCol+1}`
             ];
             
             for (let i = 0; i < Math.min(startTiles, startPositions.length); i++) {
@@ -848,133 +1131,7 @@
             updateWaveDisplay();
         }
 
-        // Start Bots Battle mode
-        function startBotsBattle() {
-            console.log("Starting Bots Battle mode...");
-            gameState.active = true;
-            gameState.mapSize = 8;
-            
-            const settings = difficultySettings[gameState.difficulty];
-            gameState.troopGenerationRate = settings.troopRate;
-            
-            // Player starts in top-left area
-            const playerTiles = [];
-            const playerStart = [
-                '0-0', '0-1', '1-0', '1-1'
-            ];
-            
-            for (let i = 0; i < Math.min(settings.startingTiles, playerStart.length); i++) {
-                playerTiles.push(playerStart[i]);
-            }
-            
-            playerTiles.forEach(tileId => {
-                conquerTile(tileId, 'player');
-                gameState.troops[tileId].playerTroops = settings.startingTroops;
-                updateTroopDisplayOnTile(tileId);
-            });
-            
-            gameStatus.textContent = "Bots Battle: Eliminate all opponents!";
-            
-            // Spawn bots
-            spawnBots(settings.botSpawnCount * 2);
-        }
-
-        // Start 1v1 mode
-        function start1v1() {
-            console.log("Starting 1v1 mode...");
-            gameState.active = true;
-            gameState.mapSize = 8;
-            
-            const settings = difficultySettings[gameState.difficulty];
-            gameState.troopGenerationRate = settings.troopRate;
-            
-            // Player starts on left
-            const playerRow = Math.floor(gameState.mapSize / 2);
-            const playerTile = `${playerRow}-1`;
-            conquerTile(playerTile, 'player');
-            gameState.troops[playerTile].playerTroops = settings.startingTroops;
-            updateTroopDisplayOnTile(playerTile);
-            
-            // Bot starts on right
-            const botRow = Math.floor(gameState.mapSize / 2);
-            const botTile = `${botRow}-${gameState.mapSize - 2}`;
-            conquerTile(botTile, 'bot');
-            gameState.troops[botTile].botTroops = settings.startingTroops * 1.5;
-            updateTroopDisplayOnTile(botTile);
-            
-            gameState.bots.push({
-                id: 'elite',
-                strength: settings.botStrength * 1.5,
-                intelligence: settings.botIntelligence * 1.5,
-                aggression: 0.7
-            });
-            gameState.botCount = 1;
-            
-            gameStatus.textContent = "1v1 Duel: Defeat the elite bot!";
-        }
-
-        // Start game loop
-        function startGameLoop() {
-            if (gameState.gameLoop) clearInterval(gameState.gameLoop);
-            
-            gameState.gameLoop = setInterval(() => {
-                if (!gameState.active || gameState.isPaused) return;
-                
-                const currentTime = Date.now();
-                const deltaTime = (currentTime - gameState.lastUpdate) / 1000;
-                gameState.lastUpdate = currentTime;
-                
-                // Update game time
-                gameState.gameTime += deltaTime;
-                
-                // Generate troops
-                generateTroops(deltaTime);
-                
-                // Bot actions
-                if (Math.random() < 0.3) {
-                    botActions();
-                }
-                
-                // Update wave timer (Domination mode only)
-                if (gameState.mode === 'domination') {
-                    gameState.waveTimer -= deltaTime;
-                    if (gameState.waveTimer <= 0) {
-                        nextWave();
-                    }
-                    updateWaveTimerDisplay();
-                }
-                
-                // Update UI
-                updateUI();
-                
-                // Check win conditions
-                checkGameEnd();
-                
-            }, 1000);
-        }
-
-        // Generate troops
-        function generateTroops(deltaTime) {
-            const generation = gameState.troopGenerationRate * deltaTime;
-            
-            // Player troops
-            gameState.playerTiles.forEach(tileId => {
-                if (gameState.troops[tileId].playerTroops < gameState.maxTroopsPerTile) {
-                    gameState.troops[tileId].playerTroops += generation;
-                    updateTroopDisplayOnTile(tileId);
-                }
-            });
-            
-            // Bot troops
-            gameState.botTiles.forEach(tileId => {
-                if (gameState.troops[tileId].botTroops < gameState.maxTroopsPerTile) {
-                    gameState.troops[tileId].botTroops += generation * 0.8 * difficultySettings[gameState.difficulty].botStrength;
-                    updateTroopDisplayOnTile(tileId);
-                }
-            });
-        }
-
-        // Handle tile click - IMPROVED: Can move to ANY adjacent tile
+        // Handle tile click - FIXED ADJACENCY
         function handleTileClick(tileId) {
             if (!gameState.active || gameState.isPaused) {
                 console.log("Game not active or paused");
@@ -983,11 +1140,16 @@
             
             console.log(`Tile clicked: ${tileId}`);
             
+            // Close side panel on mobile when clicking tiles
+            if (gameState.isMobile && sidePanel.classList.contains('active')) {
+                toggleSidePanel();
+            }
+            
             // If a tile is already selected
             if (gameState.selectedTile) {
                 const fromTileId = gameState.selectedTile;
                 
-                // Check if clicked tile is adjacent
+                // Check if clicked tile is adjacent (FIXED LOGIC)
                 if (isAdjacentHex(tileId, fromTileId)) {
                     const fromTroops = Math.floor(gameState.troops[fromTileId].playerTroops);
                     const deployTroops = Math.floor(fromTroops * (gameState.deploymentPercentage / 100));
@@ -999,7 +1161,7 @@
                         return;
                     }
                     
-                    // Move troops to ANY adjacent tile (friend or foe)
+                    // Move troops to ANY adjacent tile
                     moveTroops(fromTileId, tileId, deployTroops);
                     deselectTile();
                 } else {
@@ -1017,7 +1179,73 @@
             }
         }
 
-        // Move troops to ANY adjacent tile (updated to handle all cases)
+        // Check if hexagon tiles are adjacent - COMPLETELY FIXED LOGIC
+        function isAdjacentHex(tileId1, tileId2) {
+            const [row1, col1] = tileId1.split('-').map(Number);
+            const [row2, col2] = tileId2.split('-').map(Number);
+            
+            const rowDiff = Math.abs(row1 - row2);
+            const colDiff = Math.abs(col1 - col2);
+            
+            // For axial coordinates (odd-r offset):
+            if (rowDiff === 0 && colDiff === 1) {
+                return true; // Same row, adjacent columns
+            }
+            
+            if (rowDiff === 1) {
+                if (row1 % 2 === 0) { // Even row
+                    return col2 === col1 || col2 === col1 + 1;
+                } else { // Odd row
+                    return col2 === col1 || col2 === col1 - 1;
+                }
+            }
+            
+            return false;
+        }
+
+        // Get all adjacent hexagon tiles - FIXED FOR ALL DIRECTIONS
+        function getAdjacentHexTiles(tileId) {
+            const [row, col] = tileId.split('-').map(Number);
+            const gridSize = gameState.mapSize;
+            const adjacent = [];
+            
+            // All possible neighbors in axial coordinates
+            const neighbors = [];
+            
+            // Different neighbors based on row parity (odd-r offset system)
+            if (row % 2 === 0) {
+                // Even rows
+                neighbors.push(
+                    [row, col-1],     // West
+                    [row, col+1],     // East
+                    [row-1, col-1],   // Northwest
+                    [row-1, col],     // Northeast
+                    [row+1, col-1],   // Southwest
+                    [row+1, col]      // Southeast
+                );
+            } else {
+                // Odd rows
+                neighbors.push(
+                    [row, col-1],     // West
+                    [row, col+1],     // East
+                    [row-1, col],     // Northwest
+                    [row-1, col+1],   // Northeast
+                    [row+1, col],     // Southwest
+                    [row+1, col+1]    // Southeast
+                );
+            }
+            
+            // Add valid neighbors
+            for (const [r, c] of neighbors) {
+                if (r >= 0 && r < gridSize && c >= 0 && c < gridSize) {
+                    adjacent.push(`${r}-${c}`);
+                }
+            }
+            
+            return adjacent;
+        }
+
+        // Move troops to ANY adjacent tile
         function moveTroops(fromTileId, toTileId, troops) {
             const fromData = gameState.troops[fromTileId];
             const toData = gameState.troops[toTileId];
@@ -1098,7 +1326,7 @@
             if (tile) {
                 tile.classList.add('selected');
                 const troops = Math.floor(gameState.troops[tileId].playerTroops);
-                selectedTileInfo.textContent = `${tileId} (${troops} troops)`;
+                selectedTileInfo.textContent = `${gameState.isMobile ? 'Tile' : tileId} (${troops} troops)`;
                 console.log(`Tile selected: ${tileId} with ${troops} troops`);
             }
         }
@@ -1154,11 +1382,16 @@
             console.log(`Tile ${tileId} conquered by ${newOwner}`);
         }
 
-        // Bot actions
+        // Bot actions (simplified for mobile performance)
         function botActions() {
-            gameState.bots.forEach((bot, botIndex) => {
+            if (gameState.isMobile && gameState.bots.length > 5) {
+                // Limit bot actions on mobile for performance
+                if (Math.random() > 0.2) return;
+            } else {
                 if (Math.random() > 0.4) return;
-                
+            }
+            
+            gameState.bots.forEach((bot) => {
                 // Find bot tiles with troops
                 const botTilesWithTroops = gameState.botTiles.filter(tileId => 
                     gameState.troops[tileId].botTroops > 5
@@ -1173,7 +1406,7 @@
                 // Find adjacent tiles
                 const adjacentTiles = getAdjacentHexTiles(fromTileId);
                 
-                // Find targets (bots can attack ANY adjacent tile)
+                // Find targets
                 const playerTargets = adjacentTiles.filter(tileId => 
                     gameState.playerTiles.includes(tileId)
                 );
@@ -1183,30 +1416,14 @@
                 );
                 
                 let targetTileId = null;
-                let targetType = null;
                 
-                // Try to attack player (based on aggression)
+                // Try to attack player
                 if (Math.random() < bot.aggression && playerTargets.length > 0) {
-                    for (const tileId of playerTargets) {
-                        const defense = gameState.troops[tileId].playerTroops + gameState.troops[tileId].shield;
-                        if (deployTroops > defense * (0.8 + bot.strength * 0.2)) {
-                            targetTileId = tileId;
-                            targetType = 'player';
-                            break;
-                        }
-                    }
+                    targetTileId = playerTargets[Math.floor(Math.random() * playerTargets.length)];
                 }
-                
                 // Try neutral
-                if (!targetTileId && neutralTargets.length > 0) {
-                    for (const tileId of neutralTargets) {
-                        const defense = gameState.troops[tileId].neutralTroops + gameState.troops[tileId].shield;
-                        if (deployTroops > defense) {
-                            targetTileId = tileId;
-                            targetType = 'neutral';
-                            break;
-                        }
-                    }
+                else if (neutralTargets.length > 0) {
+                    targetTileId = neutralTargets[Math.floor(Math.random() * neutralTargets.length)];
                 }
                 
                 // Attack if found
@@ -1216,26 +1433,26 @@
                     
                     attackerData.botTroops -= deployTroops;
                     
-                    if (targetType === 'player') {
-                        const defense = defenderData.playerTroops + defenderData.shield;
-                        if (deployTroops > defense) {
-                            const surviving = deployTroops - defense;
+                    const isPlayerTarget = gameState.playerTiles.includes(targetTileId);
+                    const defense = isPlayerTarget ? defenderData.playerTroops : defenderData.neutralTroops;
+                    const totalDefense = defense + defenderData.shield;
+                    
+                    if (deployTroops > totalDefense) {
+                        const surviving = deployTroops - totalDefense;
+                        
+                        if (isPlayerTarget) {
                             defenderData.playerTroops = 0;
                             defenderData.botTroops = surviving;
                             conquerTile(targetTileId, 'bot');
                             gameStatus.textContent = "AI captured your territory!";
                             gameStatus.className = "game-status bot-turn";
-                            animateBattle(fromTileId, targetTileId);
-                        }
-                    } else if (targetType === 'neutral') {
-                        const defense = defenderData.neutralTroops + defenderData.shield;
-                        if (deployTroops > defense) {
-                            const surviving = deployTroops - defense;
+                        } else {
                             defenderData.neutralTroops = 0;
                             defenderData.botTroops = surviving;
                             conquerTile(targetTileId, 'bot');
-                            animateBattle(fromTileId, targetTileId);
                         }
+                        
+                        animateBattle(fromTileId, targetTileId);
                     }
                     
                     updateTroopDisplayOnTile(fromTileId);
@@ -1248,6 +1465,11 @@
         function spawnBots(count) {
             const settings = difficultySettings[gameState.difficulty];
             
+            // Limit bot count on mobile for performance
+            if (gameState.isMobile) {
+                count = Math.min(count, 4);
+            }
+            
             for (let i = 0; i < count; i++) {
                 // Find neutral tile away from player
                 let spawnTile = null;
@@ -1255,26 +1477,13 @@
                 
                 const gridSize = gameState.mapSize;
                 
-                while (!spawnTile && attempts < 100) {
+                while (!spawnTile && attempts < 50) {
                     const row = Math.floor(Math.random() * gridSize);
                     const col = Math.floor(Math.random() * gridSize);
                     const tileId = `${row}-${col}`;
                     
                     if (gameState.neutralTiles.includes(tileId)) {
-                        // Check distance from player tiles
-                        let tooClose = false;
-                        for (const playerTileId of gameState.playerTiles) {
-                            const [pRow, pCol] = playerTileId.split('-').map(Number);
-                            const distance = Math.abs(pRow - row) + Math.abs(pCol - col);
-                            if (distance < 3) {
-                                tooClose = true;
-                                break;
-                            }
-                        }
-                        
-                        if (!tooClose) {
-                            spawnTile = tileId;
-                        }
+                        spawnTile = tileId;
                     }
                     attempts++;
                 }
@@ -1302,232 +1511,6 @@
             console.log(`Spawned ${count} bots. Total bots: ${gameState.botCount}`);
         }
 
-        // Next wave (Domination mode)
-        function nextWave() {
-            if (gameState.mode !== 'domination') return;
-            
-            console.log(`Starting wave ${gameState.wave + 1}`);
-            gameState.wave++;
-            gameState.mapSize += 25; // EXPAND BY 25x25
-            gameState.waveTimer = 300;
-            
-            // Update wave display
-            updateWaveDisplay();
-            
-            // Save current player and bot tiles
-            const savedPlayerTiles = [...gameState.playerTiles];
-            const savedBotTiles = [...gameState.botTiles];
-            const savedTroops = JSON.parse(JSON.stringify(gameState.troops));
-            
-            // Regenerate tiles with new size
-            createHexagonTiles();
-            
-            // Restore player and bot tiles in new grid
-            savedPlayerTiles.forEach(tileId => {
-                const [row, col] = tileId.split('-').map(Number);
-                if (row < gameState.mapSize && col < gameState.mapSize) {
-                    if (savedTroops[tileId]) {
-                        gameState.troops[tileId] = savedTroops[tileId];
-                        conquerTile(tileId, 'player');
-                        updateTroopDisplayOnTile(tileId);
-                    }
-                }
-            });
-            
-            savedBotTiles.forEach(tileId => {
-                const [row, col] = tileId.split('-').map(Number);
-                if (row < gameState.mapSize && col < gameState.mapSize) {
-                    if (savedTroops[tileId]) {
-                        gameState.troops[tileId] = savedTroops[tileId];
-                        conquerTile(tileId, 'bot');
-                        updateTroopDisplayOnTile(tileId);
-                    }
-                }
-            });
-            
-            // Spawn more bots with increased difficulty
-            const settings = difficultySettings[gameState.difficulty];
-            const spawnCount = settings.botSpawnCount + Math.floor(gameState.wave / 2);
-            spawnBots(spawnCount);
-            
-            gameStatus.textContent = `Wave ${gameState.wave}! Map expanded to ${gameState.mapSize}x${gameState.mapSize}!`;
-            gameStatus.className = "game-status player-turn";
-        }
-
-        // Update wave display
-        function updateWaveDisplay() {
-            const currentWaveElement = document.getElementById('currentWave');
-            if (currentWaveElement) {
-                currentWaveElement.textContent = gameState.wave;
-            }
-        }
-
-        // Update wave timer display
-        function updateWaveTimerDisplay() {
-            const nextWaveTimer = document.getElementById('nextWaveTimer');
-            if (nextWaveTimer) {
-                const minutes = Math.floor(gameState.waveTimer / 60);
-                const seconds = Math.floor(gameState.waveTimer % 60);
-                nextWaveTimer.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-            }
-        }
-
-        // Check if bot is completely defeated
-        function checkBotDefeated() {
-            const remainingBots = gameState.bots.filter((bot, index) => {
-                const botTiles = gameState.botTiles.filter(tileId => 
-                    gameState.troops[tileId].botTroops > 0
-                );
-                return botTiles.length > 0;
-            });
-            
-            gameState.bots = remainingBots;
-            gameState.botCount = remainingBots.length;
-        }
-
-        // Check game end
-        function checkGameEnd() {
-            if (!gameState.active) return;
-            
-            // Player loses if no tiles
-            if (gameState.playerTiles.length === 0) {
-                endGame(false);
-                return;
-            }
-            
-            // Win conditions for non-domination modes
-            if (gameState.mode === 'bots' && gameState.botTiles.length === 0) {
-                endGame(true);
-                return;
-            }
-            
-            if (gameState.mode === '1v1' && gameState.botTiles.length === 0) {
-                endGame(true);
-                return;
-            }
-        }
-
-        // End game
-        function endGame(isVictory) {
-            gameState.active = false;
-            if (gameState.gameLoop) {
-                clearInterval(gameState.gameLoop);
-                gameState.gameLoop = null;
-            }
-            
-            // Calculate score
-            const settings = difficultySettings[gameState.difficulty];
-            const timeBonus = Math.floor(gameState.gameTime * 2);
-            const tileBonus = gameState.playerTiles.length * 50;
-            const troopBonus = Math.floor(totalPlayerTroops() * 0.5);
-            const botBonus = (gameState.botsDefeated || 0) * 100;
-            const waveBonus = (gameState.wave || 1) * 1000;
-            
-            let finalScore = Math.floor((
-                gameState.score + 
-                timeBonus + 
-                tileBonus + 
-                troopBonus + 
-                botBonus +
-                waveBonus
-            ) * settings.scoreMultiplier);
-            
-            if (isVictory) {
-                finalScore = Math.floor(finalScore * 1.5);
-                document.getElementById('gameOverTitle').textContent = 'VICTORY!';
-                document.getElementById('gameOverMessage').textContent = 'You have dominated the battlefield!';
-                gameStatus.textContent = "Victory!";
-            } else {
-                document.getElementById('gameOverTitle').textContent = 'DEFEAT';
-                document.getElementById('gameOverMessage').textContent = 'Your forces have been overwhelmed!';
-                gameStatus.textContent = "Defeat!";
-            }
-            
-            // Update final stats
-            document.getElementById('finalScore').textContent = finalScore;
-            document.getElementById('finalTime').textContent = formatTime(gameState.gameTime);
-            document.getElementById('finalWaves').textContent = gameState.wave || 1;
-            
-            // Save to global leaderboard
-            saveToGlobalLeaderboard(finalScore);
-            
-            // Show modal
-            setTimeout(() => {
-                document.getElementById('gameOverModal').style.display = 'block';
-            }, 1000);
-        }
-
-        // ========== HEXAGON GRID FUNCTIONS ==========
-
-        // Check if hexagon tiles are adjacent - IMPROVED LOGIC
-        function isAdjacentHex(tileId1, tileId2) {
-            const [row1, col1] = tileId1.split('-').map(Number);
-            const [row2, col2] = tileId2.split('-').map(Number);
-            
-            const rowDiff = Math.abs(row1 - row2);
-            const colDiff = Math.abs(col1 - col2);
-            
-            // For properly connected hex grid:
-            // 1. Same row, adjacent columns
-            if (rowDiff === 0 && colDiff === 1) return true;
-            
-            // 2. Different rows, check based on row parity
-            if (rowDiff === 1) {
-                if (row1 % 2 === 0) { // Even row
-                    return (col2 === col1) || (col2 === col1 + 1);
-                } else { // Odd row
-                    return (col2 === col1) || (col2 === col1 - 1);
-                }
-            }
-            
-            return false;
-        }
-
-        // Get adjacent hexagon tiles
-        function getAdjacentHexTiles(tileId) {
-            const [row, col] = tileId.split('-').map(Number);
-            const gridSize = gameState.mapSize;
-            const adjacent = [];
-            
-            // All possible adjacent positions for hex grid
-            const directions = [
-                [0, -1],  // left
-                [0, 1],   // right
-                [-1, 0],  // up-left/up-right depending on row
-                [-1, 1],  // up-right/up-left depending on row
-                [1, 0],   // down-left/down-right depending on row
-                [1, 1]    // down-right/down-left depending on row
-            ];
-            
-            // Adjust directions based on row parity
-            let adjustedDirections = directions;
-            if (row % 2 === 0) {
-                // Even row adjustments
-                adjustedDirections = [
-                    [0, -1],  // left
-                    [0, 1],   // right
-                    [-1, -1], // up-left
-                    [-1, 0],  // up-right
-                    [1, -1],  // down-left
-                    [1, 0]    // down-right
-                ];
-            }
-            
-            // Check all directions
-            for (const [dr, dc] of adjustedDirections) {
-                const newRow = row + dr;
-                const newCol = col + dc;
-                
-                if (newRow >= 0 && newRow < gridSize && newCol >= 0 && newCol < gridSize) {
-                    adjacent.push(`${newRow}-${newCol}`);
-                }
-            }
-            
-            return adjacent;
-        }
-
-        // ========== HELPER FUNCTIONS ==========
-
         // Update troop display on specific tile
         function updateTroopDisplayOnTile(tileId) {
             const tile = document.getElementById(tileId);
@@ -1548,64 +1531,6 @@
             
             const content = tile.querySelector('.tile-troops');
             if (content) content.textContent = troopCount;
-        }
-
-        // Calculate total player troops
-        function totalPlayerTroops() {
-            return gameState.playerTiles.reduce((total, tileId) => {
-                return total + Math.floor(gameState.troops[tileId].playerTroops);
-            }, 0);
-        }
-
-        // Format time
-        function formatTime(seconds) {
-            const mins = Math.floor(seconds / 60);
-            const secs = Math.floor(seconds % 60);
-            return `${mins}:${secs.toString().padStart(2, '0')}`;
-        }
-
-        // Save to global leaderboard
-        function saveToGlobalLeaderboard(score) {
-            const playerName = gameState.playerName;
-            const date = new Date().toISOString();
-            
-            // Get existing leaderboard
-            let leaderboard = JSON.parse(localStorage.getItem('dominationLeaderboard')) || [];
-            
-            // Add new score
-            leaderboard.push({
-                player: playerName,
-                score: score,
-                mode: gameState.mode,
-                difficulty: gameState.difficulty,
-                time: Math.floor(gameState.gameTime),
-                date: date,
-                waves: gameState.wave || 0,
-                tiles: gameState.playerTiles.length,
-                botsDefeated: gameState.botsDefeated || 0
-            });
-            
-            // Sort by score (descending) and keep top 100
-            leaderboard.sort((a, b) => b.score - a.score);
-            leaderboard = leaderboard.slice(0, 100);
-            
-            // Save back to localStorage
-            localStorage.setItem('dominationLeaderboard', JSON.stringify(leaderboard));
-        }
-
-        // Animate battle
-        function animateBattle(attackerTileId, defenderTileId) {
-            const attackerTile = document.getElementById(attackerTileId);
-            const defenderTile = document.getElementById(defenderTileId);
-            
-            if (attackerTile && defenderTile) {
-                attackerTile.classList.add('battle');
-                defenderTile.classList.add('battle');
-                setTimeout(() => {
-                    attackerTile.classList.remove('battle');
-                    defenderTile.classList.remove('battle');
-                }, 500);
-            }
         }
 
         // Update UI
@@ -1649,6 +1574,8 @@
                 troopGenerationRate: 1,
                 maxTroopsPerTile: 100,
                 troops: {},
+                hexSize: calculateHexSize(),
+                isMobile: checkMobile(),
                 deploymentPercentage: gameState.deploymentPercentage,
                 wave: 1,
                 waveTimer: 300,
@@ -1677,10 +1604,20 @@
             }
         }
 
+        function toggleSidePanel() {
+            if (gameState.isMobile) {
+                sidePanel.classList.toggle('active');
+                sidePanelToggle.innerHTML = sidePanel.classList.contains('active') ? 
+                    '<i class="fas fa-times"></i>' : 
+                    '<i class="fas fa-bars"></i>';
+            }
+        }
+
         function zoomIn() {
             if (gameState.zoomLevel < 2) {
                 gameState.zoomLevel += 0.1;
                 hexGrid.style.transform = `scale(${gameState.zoomLevel})`;
+                centerHexGrid();
             }
         }
 
@@ -1688,67 +1625,91 @@
             if (gameState.zoomLevel > 0.5) {
                 gameState.zoomLevel -= 0.1;
                 hexGrid.style.transform = `scale(${gameState.zoomLevel})`;
+                centerHexGrid();
             }
         }
 
         function resetZoom() {
             gameState.zoomLevel = 1;
             hexGrid.style.transform = `scale(${gameState.zoomLevel})`;
+            centerHexGrid();
         }
 
-        // Keyboard shortcuts
-        document.addEventListener('keydown', function(event) {
-            if (!gameState.active) return;
-            
-            // ESC to cancel
-            if (event.key === 'Escape') {
-                if (gameState.selectedTile) {
-                    deselectTile();
-                }
-            }
-            
-            // P to pause
-            if (event.key === 'p' || event.key === 'P') {
-                pauseGame();
-            }
-            
-            // R to restart
-            if (event.key === 'r' || event.key === 'R') {
-                if (confirm("Restart game?")) {
-                    restartGame();
-                }
-            }
-            
-            // M for menu
-            if (event.key === 'm' || event.key === 'M') {
-                if (confirm("Return to main menu?")) {
-                    goToMenu();
-                }
-            }
-            
-            // + to zoom in
-            if (event.key === '+' || event.key === '=') {
-                zoomIn();
-            }
-            
-            // - to zoom out
-            if (event.key === '-' || event.key === '_') {
-                zoomOut();
-            }
-            
-            // 0 to reset zoom
-            if (event.key === '0') {
-                resetZoom();
-            }
-        });
+        // Helper functions
+        function totalPlayerTroops() {
+            return gameState.playerTiles.reduce((total, tileId) => {
+                return total + Math.floor(gameState.troops[tileId].playerTroops);
+            }, 0);
+        }
 
-        // Close modals
-        window.onclick = function(event) {
-            const modal = document.getElementById('gameOverModal');
-            if (event.target === modal) {
-                modal.style.display = 'none';
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function animateBattle(attackerTileId, defenderTileId) {
+            const attackerTile = document.getElementById(attackerTileId);
+            const defenderTile = document.getElementById(defenderTileId);
+            
+            if (attackerTile && defenderTile) {
+                attackerTile.classList.add('battle');
+                defenderTile.classList.add('battle');
+                setTimeout(() => {
+                    attackerTile.classList.remove('battle');
+                    defenderTile.classList.remove('battle');
+                }, 500);
             }
-        };
+        }
+
+        // Handle window resize
+        let resizeTimeout;
+        function handleResize() {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                const newIsMobile = checkMobile();
+                const newHexSize = calculateHexSize();
+                
+                // Only recreate if significant changes
+                if (newIsMobile !== gameState.isMobile || Math.abs(newHexSize - gameState.hexSize) > 5) {
+                    gameState.isMobile = newIsMobile;
+                    gameState.hexSize = newHexSize;
+                    
+                    // Save current state
+                    const savedPlayerTiles = [...gameState.playerTiles];
+                    const savedBotTiles = [...gameState.botTiles];
+                    const savedTroops = JSON.parse(JSON.stringify(gameState.troops));
+                    
+                    // Recreate grid with new size
+                    createHexagonTiles();
+                    
+                    // Restore state
+                    savedPlayerTiles.forEach(tileId => {
+                        const [row, col] = tileId.split('-').map(Number);
+                        if (row < gameState.mapSize && col < gameState.mapSize) {
+                            if (savedTroops[tileId]) {
+                                gameState.troops[tileId] = savedTroops[tileId];
+                                conquerTile(tileId, 'player');
+                                updateTroopDisplayOnTile(tileId);
+                            }
+                        }
+                    });
+                    
+                    savedBotTiles.forEach(tileId => {
+                        const [row, col] = tileId.split('-').map(Number);
+                        if (row < gameState.mapSize && col < gameState.mapSize) {
+                            if (savedTroops[tileId]) {
+                                gameState.troops[tileId] = savedTroops[tileId];
+                                conquerTile(tileId, 'bot');
+                                updateTroopDisplayOnTile(tileId);
+                            }
+                        }
+                    });
+                    
+                    centerHexGrid();
+                }
+            }, 250);
+        }
 
         // Initialize game
         document.addEventListener('DOMContentLoaded', function() {
@@ -1777,6 +1738,56 @@
             
             // Initialize game
             setTimeout(initGame, 100);
+            
+            // Add resize handler
+            window.addEventListener('resize', handleResize);
+            
+            // Prevent context menu on mobile
+            document.addEventListener('contextmenu', (e) => {
+                if (gameState.isMobile) {
+                    e.preventDefault();
+                }
+            });
+            
+            // Prevent zoom on mobile
+            document.addEventListener('touchstart', (e) => {
+                if (e.touches.length > 1) {
+                    e.preventDefault();
+                }
+            }, { passive: false });
+            
+            // Add swipe support for side panel on mobile
+            let touchStartX = 0;
+            let touchStartY = 0;
+            
+            document.addEventListener('touchstart', (e) => {
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+            }, { passive: true });
+            
+            document.addEventListener('touchend', (e) => {
+                if (!gameState.isMobile) return;
+                
+                const touchEndX = e.changedTouches[0].clientX;
+                const touchEndY = e.changedTouches[0].clientY;
+                const diffX = touchStartX - touchEndX;
+                const diffY = Math.abs(touchStartY - touchEndY);
+                
+                // Horizontal swipe with minimal vertical movement
+                if (Math.abs(diffX) > 50 && diffY < 30) {
+                    if (diffX > 0) {
+                        // Swipe left - close panel if open
+                        if (sidePanel.classList.contains('active')) {
+                            toggleSidePanel();
+                        }
+                    } else {
+                        // Swipe right - open panel if closed
+                        if (!sidePanel.classList.contains('active')) {
+                            toggleSidePanel();
+                        }
+                    }
+                }
+            }, { passive: true });
         });
     </script>
 </body>
