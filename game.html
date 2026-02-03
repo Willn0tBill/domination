@@ -759,7 +759,7 @@
             <h1><i class="fas fa-crown"></i> DOMINATION</h1>
             <div class="header-right">
                 <div class="wave-info" id="waveInfo" style="display: none;">
-                    Wave: <span id="currentWave">1</span> | Next: <span id="nextWaveTimer">5:00</span>
+                    Wave: <span id="currentWave">1</span> | Next: <span id="nextWaveTimer">2:00</span>
                 </div>
                 <button class="back-btn" onclick="goToMenu()">
                     <i class="fas fa-home"></i> Menu
@@ -915,7 +915,7 @@
             
             // Domination mode specific
             wave: 1,
-            waveTimer: 300,
+            waveTimer: 120, // Changed from 300 to 120 seconds (2 minutes)
             mapSize: 8,
             zoomLevel: 1,
             cameraX: 0,
@@ -1281,7 +1281,7 @@
             console.log("Starting Domination mode...");
             gameState.active = true;
             gameState.wave = 1;
-            gameState.waveTimer = 300;
+            gameState.waveTimer = 120; // Changed from 300 to 120 (2 minutes)
             gameState.mapSize = 8;
             
             const settings = difficultySettings[gameState.difficulty];
@@ -1323,7 +1323,7 @@
                 updateTroopDisplayOnTile(tileId);
             });
             
-            gameStatus.textContent = "Domination: Survive infinite waves! Map expands symmetrically.";
+            gameStatus.textContent = "Domination: Survive infinite waves! Map expands every 2 minutes.";
             
             // Spawn initial bots
             spawnBots(gameState.botSpawnCount);
@@ -1784,76 +1784,113 @@
             }
         }
 
-        // Next wave - IMPROVED symmetrical expansion
+        // Next wave - FIXED symmetrical expansion (only 2 tiles per side)
         function nextWave() {
             if (gameState.mode !== 'domination') return;
             
             console.log(`Starting wave ${gameState.wave + 1}`);
             gameState.wave++;
-            gameState.waveTimer = 300;
+            gameState.waveTimer = 120; // 2 minutes
             
-            // Expand map symmetrically by 5 in all directions (instead of 25)
-            const expansion = 5;
-            gameState.mapSize += expansion * 2; // Add to both sides
+            // Expand map by only 2 in all directions (instead of 25)
+            const expansion = 2;
+            const oldSize = gameState.mapSize;
+            gameState.mapSize += expansion; // Only add 2 total (not 25)
             
             // Update wave display
             updateWaveDisplay();
             
             // Save current state
-            const savedPlayerTiles = [...gameState.playerTiles];
-            const savedBotTiles = [...gameState.botTiles];
-            const savedNeutralTiles = [...gameState.neutralTiles];
-            const savedTroops = JSON.parse(JSON.stringify(gameState.troops));
+            const savedState = {
+                playerTiles: [...gameState.playerTiles],
+                botTiles: [...gameState.botTiles],
+                neutralTiles: [...gameState.neutralTiles],
+                troops: JSON.parse(JSON.stringify(gameState.troops)),
+                supplyLines: JSON.parse(JSON.stringify(gameState.supplyLines)),
+                supplySources: [...gameState.supplySources]
+            };
             
-            // Clear and recreate grid
+            // Clear and recreate grid with NEW SIZE
             createHexagonTiles();
             
-            // Offset positions for symmetric expansion
-            const offset = expansion;
+            // Calculate offset - smaller now
+            const offset = Math.floor(expansion / 2);
             
-            // Restore tiles with offset for symmetric expansion
-            savedPlayerTiles.forEach(tileId => {
+            // Helper function to restore tiles
+            function restoreTile(tileId, owner, state) {
                 const [row, col] = tileId.split('-').map(Number);
                 const newRow = row + offset;
                 const newCol = col + offset;
                 const newTileId = `${newRow}-${newCol}`;
                 
-                if (savedTroops[tileId]) {
-                    gameState.troops[newTileId] = savedTroops[tileId];
-                    conquerTile(newTileId, 'player');
-                    updateTroopDisplayOnTile(newTileId);
+                // Only restore if within new bounds
+                if (newRow < gameState.mapSize && newCol < gameState.mapSize) {
+                    if (state.troops[tileId]) {
+                        // Copy troop data
+                        gameState.troops[newTileId] = JSON.parse(JSON.stringify(state.troops[tileId]));
+                        
+                        // Restore owner
+                        if (owner === 'player') {
+                            conquerTile(newTileId, 'player');
+                        } else if (owner === 'bot') {
+                            conquerTile(newTileId, 'bot');
+                        } else if (owner === 'neutral') {
+                            conquerTile(newTileId, 'neutral');
+                        }
+                        
+                        updateTroopDisplayOnTile(newTileId);
+                        return newTileId;
+                    }
                 }
+                return null;
+            }
+            
+            // Restore player tiles with mapping
+            const tileMapping = {}; // oldId -> newId
+            
+            savedState.playerTiles.forEach(tileId => {
+                const newId = restoreTile(tileId, 'player', savedState);
+                if (newId) tileMapping[tileId] = newId;
             });
             
-            savedBotTiles.forEach(tileId => {
-                const [row, col] = tileId.split('-').map(Number);
-                const newRow = row + offset;
-                const newCol = col + offset;
-                const newTileId = `${newRow}-${newCol}`;
-                
-                if (savedTroops[tileId]) {
-                    gameState.troops[newTileId] = savedTroops[tileId];
-                    conquerTile(newTileId, 'bot');
-                    updateTroopDisplayOnTile(newTileId);
-                }
+            savedState.botTiles.forEach(tileId => {
+                const newId = restoreTile(tileId, 'bot', savedState);
+                if (newId) tileMapping[tileId] = newId;
             });
             
-            savedNeutralTiles.forEach(tileId => {
-                const [row, col] = tileId.split('-').map(Number);
-                const newRow = row + offset;
-                const newCol = col + offset;
-                const newTileId = `${newRow}-${newCol}`;
-                
-                if (savedTroops[tileId]) {
-                    gameState.troops[newTileId] = savedTroops[tileId];
-                    conquerTile(newTileId, 'neutral');
-                    updateTroopDisplayOnTile(newTileId);
-                }
+            savedState.neutralTiles.forEach(tileId => {
+                const newId = restoreTile(tileId, 'neutral', savedState);
+                if (newId) tileMapping[tileId] = newId;
             });
             
-            // Increase bot spawn rate
+            // Update supply lines with new tile IDs
+            gameState.supplyLines = {};
+            gameState.supplySources = [];
+            
+            for (const sourceId in savedState.supplyLines) {
+                if (tileMapping[sourceId]) {
+                    const newSourceId = tileMapping[sourceId];
+                    gameState.supplyLines[newSourceId] = {};
+                    
+                    for (const targetId in savedState.supplyLines[sourceId]) {
+                        if (tileMapping[targetId]) {
+                            gameState.supplyLines[newSourceId][tileMapping[targetId]] = 
+                                JSON.parse(JSON.stringify(savedState.supplyLines[sourceId][targetId]));
+                        }
+                    }
+                    
+                    if (savedState.supplySources.includes(sourceId)) {
+                        gameState.supplySources.push(newSourceId);
+                    }
+                }
+            }
+            
+            // Spawn fewer bots with controlled growth
             const settings = difficultySettings[gameState.difficulty];
-            gameState.botSpawnCount = settings.botSpawnCount + Math.floor(gameState.wave / 2);
+            const spawnCount = Math.min(settings.botSpawnCount + Math.floor(gameState.wave / 3), 5);
+            
+            // Spawn bots in NEW area (not overlapping with existing)
+            spawnBotsInNewArea(spawnCount, oldSize);
             
             gameStatus.textContent = `Wave ${gameState.wave}! Map expanded to ${gameState.mapSize}x${gameState.mapSize}!`;
             gameStatus.className = "game-status player-turn";
@@ -1863,6 +1900,60 @@
             
             // Center camera on player territory
             centerCameraOnPlayer();
+            
+            // Update supply line visualization
+            updateSupplyLinesVisualization();
+        }
+
+        // Spawn bots in new areas only
+        function spawnBotsInNewArea(count, oldSize) {
+            const settings = difficultySettings[gameState.difficulty];
+            
+            let spawned = 0;
+            const maxAttempts = 30;
+            let attempts = 0;
+            
+            while (spawned < count && attempts < maxAttempts) {
+                attempts++;
+                
+                // Try to spawn in the NEW area (outside old bounds)
+                let row, col;
+                if (Math.random() > 0.5) {
+                    // Spawn in new rows
+                    row = oldSize + Math.floor(Math.random() * (gameState.mapSize - oldSize));
+                    col = Math.floor(Math.random() * gameState.mapSize);
+                } else {
+                    // Spawn in new columns
+                    row = Math.floor(Math.random() * gameState.mapSize);
+                    col = oldSize + Math.floor(Math.random() * (gameState.mapSize - oldSize));
+                }
+                
+                const tileId = `${row}-${col}`;
+                
+                // Check if tile exists and is neutral
+                if (gameState.troops[tileId] && gameState.troops[tileId].owner === 'neutral') {
+                    const baseTroops = settings.startingTroops * (0.5 + Math.random() * 0.5);
+                    const waveMultiplier = Math.pow(settings.waveGrowth, gameState.wave - 1);
+                    const startTroops = Math.floor(baseTroops * waveMultiplier);
+                    
+                    gameState.troops[tileId].neutralTroops = 0;
+                    gameState.troops[tileId].botTroops = startTroops;
+                    gameState.troops[tileId].shield = settings.shieldBonus;
+                    conquerTile(tileId, 'bot');
+                    
+                    gameState.bots.push({
+                        id: `bot-${Date.now()}-${spawned}`,
+                        strength: settings.botStrength * waveMultiplier,
+                        intelligence: settings.botIntelligence * waveMultiplier,
+                        aggression: 0.4 + Math.random() * 0.3
+                    });
+                    
+                    spawned++;
+                }
+            }
+            
+            gameState.botCount = gameState.bots.length;
+            console.log(`Spawned ${spawned} bots in new area. Total bots: ${gameState.botCount}`);
         }
 
         // Center camera on player territory
@@ -2227,7 +2318,7 @@
                 // Update minimap
                 updateMinimap();
                 
-                // Check win conditions
+                // Check win conditions - FIXED GAME END
                 checkGameEnd();
                 
             }, 1000 / 60); // 60 FPS
@@ -2415,7 +2506,7 @@
                 maxTroopsPerTile: 100,
                 troops: {},
                 wave: 1,
-                waveTimer: 300,
+                waveTimer: 120, // 2 minutes
                 mapSize: 8,
                 zoomLevel: 1,
                 cameraX: 0,
@@ -2468,6 +2559,115 @@
                     '<i class="fas fa-times"></i>' : 
                     '<i class="fas fa-bars"></i>';
             }
+        }
+
+        // FIXED GAME END CONDITION
+        function checkGameEnd() {
+            if (!gameState.active) return;
+            
+            // Player loses if no tiles AND no troops anywhere
+            let playerHasTroops = false;
+            for (const tileId in gameState.troops) {
+                if (gameState.troops[tileId].playerTroops > 0) {
+                    playerHasTroops = true;
+                    break;
+                }
+            }
+            
+            if (gameState.playerTiles.length === 0 && !playerHasTroops) {
+                endGame(false);
+                return;
+            }
+            
+            // Win conditions for non-domination modes
+            if (gameState.mode === 'bots' && gameState.botTiles.length === 0) {
+                endGame(true);
+                return;
+            }
+            
+            if (gameState.mode === '1v1' && gameState.botTiles.length === 0) {
+                endGame(true);
+                return;
+            }
+        }
+
+        // End game
+        function endGame(isVictory) {
+            gameState.active = false;
+            if (gameState.gameLoop) {
+                clearInterval(gameState.gameLoop);
+                gameState.gameLoop = null;
+            }
+            
+            // Calculate score
+            const settings = difficultySettings[gameState.difficulty];
+            const timeBonus = Math.floor(gameState.gameTime * 2);
+            const tileBonus = gameState.playerTiles.length * 50;
+            const troopBonus = Math.floor(totalPlayerTroops() * 0.5);
+            const botBonus = (gameState.botsDefeated || 0) * 100;
+            const waveBonus = (gameState.wave || 1) * 1000;
+            
+            let finalScore = Math.floor((
+                gameState.score + 
+                timeBonus + 
+                tileBonus + 
+                troopBonus + 
+                botBonus +
+                waveBonus
+            ) * settings.scoreMultiplier);
+            
+            if (isVictory) {
+                finalScore = Math.floor(finalScore * 1.5);
+                document.getElementById('gameOverTitle').textContent = 'VICTORY!';
+                document.getElementById('gameOverMessage').textContent = 'You have dominated the battlefield!';
+                gameStatus.textContent = "Victory!";
+            } else {
+                document.getElementById('gameOverTitle').textContent = 'DEFEAT';
+                document.getElementById('gameOverMessage').textContent = 'Your forces have been overwhelmed!';
+                gameStatus.textContent = "Defeat!";
+            }
+            
+            // Update final stats
+            document.getElementById('finalScore').textContent = finalScore;
+            document.getElementById('finalTime').textContent = formatTime(gameState.gameTime);
+            document.getElementById('finalWaves').textContent = gameState.wave || 0;
+            
+            // Save to global leaderboard
+            saveToGlobalLeaderboard(finalScore);
+            
+            // Show modal
+            setTimeout(() => {
+                document.getElementById('gameOverModal').style.display = 'block';
+            }, 1000);
+        }
+
+        // Save to global leaderboard
+        function saveToGlobalLeaderboard(score) {
+            const playerName = gameState.playerName;
+            const date = new Date().toISOString();
+            
+            // Get existing leaderboard
+            let leaderboard = JSON.parse(localStorage.getItem('dominationLeaderboard')) || [];
+            
+            // Add new score
+            leaderboard.push({
+                player: playerName,
+                score: score,
+                mode: gameState.mode,
+                difficulty: gameState.difficulty,
+                time: Math.floor(gameState.gameTime),
+                date: date,
+                waves: gameState.wave || 0,
+                tiles: gameState.playerTiles.length,
+                botsDefeated: gameState.botsDefeated || 0
+            });
+            
+            // Sort by score (descending) and keep top 100
+            leaderboard.sort((a, b) => b.score - a.score);
+            leaderboard = leaderboard.slice(0, 100);
+            
+            // Save back to localStorage
+            localStorage.setItem('dominationLeaderboard', JSON.stringify(leaderboard));
         }
 
         // Keyboard shortcuts
@@ -2686,6 +2886,71 @@
             // Add resize handler
             window.addEventListener('resize', handleResize);
         });
+
+        // Other game mode functions (stubs - you'll need to implement these)
+        function startBotsBattle() {
+            console.log("Starting Bots Battle mode...");
+            gameState.active = true;
+            gameState.mapSize = 8;
+            
+            const settings = difficultySettings[gameState.difficulty];
+            gameState.troopGenerationRate = settings.troopRate;
+            
+            // Player starts in top-left corner
+            const playerTiles = [];
+            for (let i = 0; i < settings.startingTiles; i++) {
+                const row = Math.floor(Math.random() * 3);
+                const col = Math.floor(Math.random() * 3);
+                const tileId = `${row}-${col}`;
+                if (!playerTiles.includes(tileId)) {
+                    playerTiles.push(tileId);
+                }
+            }
+            
+            playerTiles.forEach(tileId => {
+                conquerTile(tileId, 'player');
+                gameState.troops[tileId].playerTroops = settings.startingTroops;
+                updateTroopDisplayOnTile(tileId);
+            });
+            
+            gameStatus.textContent = "Bots Battle: Eliminate all opponents!";
+            
+            // Spawn bots
+            spawnBots(settings.botSpawnCount * 2);
+        }
+
+        function start1v1() {
+            console.log("Starting 1v1 mode...");
+            gameState.active = true;
+            gameState.mapSize = 8;
+            
+            const settings = difficultySettings[gameState.difficulty];
+            gameState.troopGenerationRate = settings.troopRate;
+            
+            // Player starts on left
+            const playerRow = Math.floor(gameState.mapSize / 2);
+            const playerTile = `${playerRow}-1`;
+            conquerTile(playerTile, 'player');
+            gameState.troops[playerTile].playerTroops = settings.startingTroops;
+            updateTroopDisplayOnTile(playerTile);
+            
+            // Bot starts on right
+            const botRow = Math.floor(Math.random() * gameState.mapSize);
+            const botTile = `${botRow}-${gameState.mapSize - 2}`;
+            conquerTile(botTile, 'bot');
+            gameState.troops[botTile].botTroops = settings.startingTroops * 1.5;
+            updateTroopDisplayOnTile(botTile);
+            
+            gameState.bots.push({
+                id: 'elite',
+                strength: settings.botStrength * 1.5,
+                intelligence: settings.botIntelligence * 1.5,
+                aggression: 0.7
+            });
+            gameState.botCount = 1;
+            
+            gameStatus.textContent = "1v1 Duel: Defeat the elite bot!";
+        }
     </script>
 </body>
 </html>
